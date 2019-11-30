@@ -35,6 +35,6 @@ class SkipGramModel:
             if word in self.dictionary:
                 index = self.dictionary[word]
             else:
-                index = self.reversed_dictionary['UNK']
+                index = self.dictionary['UNK']
             indices.append(index)
         return indices
