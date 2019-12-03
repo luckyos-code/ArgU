@@ -66,3 +66,13 @@ def read_arguments(path, max_args=-1):
     for row in read_csv(path, max_rows=max_args):
         argument = Argument(row)
         yield argument
+
+
+class ArgumentTextsIterator:
+    def __init__(self, path, max_args=-1):
+        self.path = path
+        self.max_args = max_args
+
+    def __iter__(self):
+        for argument in read_arguments(self.path, self.max_args):
+            yield argument.text
