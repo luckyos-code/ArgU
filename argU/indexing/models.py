@@ -1,10 +1,12 @@
 from utils.reader import read_arguments
 from collections import defaultdict, Counter
 import numpy as np
-from utils.reader import ArgumentTextsIterator
+from utils.reader import ArgumentTextsIterator, ArgumentIterator
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
 from time import time
+from tqdm import tqdm
+from scipy import spatial
 
 
 class EpochLogger(CallbackAny2Vec):
@@ -55,3 +57,60 @@ class CBOW:
 
     def load(self, path):
         self.model = Word2Vec.load(path)
+
+
+class Argument2Vec:
+    def __init__(self, w2v_model, path, max_args=100):
+        """Modell, das aus Argumenten einen Vektor generiert
+
+        Arguments:
+            arguments_iterator (Argument, iterable): Vorverarbeitete Argumente
+            w2v_model (Word2Vec): Moodell für Word-Embeddings
+        """
+
+        self.arguments_iterator = ArgumentIterator(path, max_args)
+        self.w2v_model = w2v_model
+        self.av = dict()
+        self._build()
+
+    def load(self, path):
+        pass
+
+    def save(self, path):
+        pass
+
+    def most_similar(self, word, topn=5):
+        word_embedding = self.w2v_model.wv[word]
+        arguments = []
+        similarities = []
+
+        for (argument_id, argument_embedding) in self.av.items():
+            sim = 1 - spatial.distance.cosine(
+                word_embedding, argument_embedding
+            )
+            similarities.append(sim)
+            arguments.append(argument_id)
+
+        similarities = np.asarray(similarities)
+        best_indices = np.argpartition(similarities, -topn)[-topn:]
+        best_indices = best_indices[np.argsort(similarities[best_indices])]
+
+        best_arguments = []
+        for i in best_indices:
+            best_arguments.append(arguments[i])
+
+        return best_arguments
+
+    def _build(self):
+        vector_size = self.w2v_model.vector_size
+        for argument in tqdm(self.arguments_iterator):
+            if argument.text and len(argument.text) > 5:
+                embedding_matrix = np.zeros((len(argument.text), vector_size))
+                for i, word in enumerate(argument.text):
+                    try:
+                        embedding_matrix[i] = self.w2v_model.wv[word]
+                    except Exception as e:
+                        pass
+                argument_vector = embedding_matrix.sum(
+                    axis=0) / len(argument.text)
+                self.av[argument.id] = argument_vector

@@ -76,3 +76,13 @@ class ArgumentTextsIterator:
     def __iter__(self):
         for argument in read_arguments(self.path, self.max_args):
             yield argument.text
+
+
+class ArgumentIterator:
+    def __init__(self, path, max_args=-1):
+        self.path = path
+        self.max_args = max_args
+
+    def __iter__(self):
+        for argument in read_arguments(self.path, self.max_args):
+            yield argument
