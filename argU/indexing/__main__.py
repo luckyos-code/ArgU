@@ -21,15 +21,15 @@ elif args.status == 'load':
     cbow.load(MODEL_PATH)
 model = cbow.model
 
-max_args = 10000
-word = 'christianity'
+max_args = 1000
+query = 'christianity is bad'
 
 a2v = Argument2Vec(model, CSV_PATH, max_args=max_args)
-most_simiar_arguments = a2v.most_similar(word)
+most_simiar_arguments = a2v.most_similar(query)
 
 
 print()
-print(f"Word: {word}")
+print(f"Query: {query}")
 print('=' * 20)
 argument_iter = ArgumentIterator(CSV_PATH, max_args)
 for i, argument in enumerate(argument_iter):

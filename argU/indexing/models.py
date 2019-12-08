@@ -79,15 +79,23 @@ class Argument2Vec:
     def save(self, path):
         pass
 
-    def most_similar(self, word, topn=5):
-        word_embedding = self.w2v_model.wv[word]
+    def most_similar(self, query, topn=5):
+        query_embeddings = [self.w2v_model.wv[word] for word in query.split()]
+
         arguments = []
         similarities = []
 
         for (argument_id, argument_embedding) in self.av.items():
-            sim = 1 - spatial.distance.cosine(
-                word_embedding, argument_embedding
-            )
+            sim = 0
+            for query_embedding in query_embeddings:
+                a = np.dot(np.transpose(query_embedding), argument_embedding)
+                b = np.linalg.norm(query_embedding) * np.linalg.norm(
+                    argument_embedding
+                )
+                sim += a / b
+
+            sim *= (1 / len(query_embeddings))
+
             similarities.append(sim)
             arguments.append(argument_id)
 
@@ -101,6 +109,10 @@ class Argument2Vec:
 
         return best_arguments
 
+    def _centeroid(self, data):
+        length, dim = data.shape
+        return np.array([np.sum(data[:, i])/length for i in range(dim)])
+
     def _build(self):
         vector_size = self.w2v_model.vector_size
         for argument in tqdm(self.arguments_iterator):
@@ -111,6 +123,5 @@ class Argument2Vec:
                         embedding_matrix[i] = self.w2v_model.wv[word]
                     except Exception as e:
                         pass
-                argument_vector = embedding_matrix.sum(
-                    axis=0) / len(argument.text)
-                self.av[argument.id] = argument_vector
+                centeroid = self._centeroid(embedding_matrix)
+                self.av[argument.id] = centeroid
