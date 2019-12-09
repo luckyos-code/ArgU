@@ -1,5 +1,6 @@
 from utils.reader import read_arguments
 from collections import defaultdict, Counter
+from rank_bm25 import BM25Okapi
 import numpy as np
 from utils.reader import ArgumentTextsIterator, ArgumentIterator
 from gensim.models import Word2Vec
@@ -33,19 +34,18 @@ class EpochLogger(CallbackAny2Vec):
 
 
 class CBOW:
-    def __init__(self, min_count=3):
+    def __init__(self):
         self.window = 3
         self.size = 300
-        self.min_count = min_count
         self.model = None
 
-    def build(self, path, max_args=100, store_path=None):
+    def build(self, path, max_args=100, min_count=3, store_path=None):
         arguments_iter = ArgumentTextsIterator(path, max_args)
         self.model = Word2Vec(
             arguments_iter,
             size=self.size,
             window=self.window,
-            min_count=self.min_count,
+            min_count=min_count,
             workers=4,
             callbacks=[EpochLogger(store_path=store_path)]
         )
@@ -59,6 +59,58 @@ class CBOW:
         self.model = Word2Vec.load(path)
 
 
+class BM25:
+    """Index zur Bestimmung relevanter Argumente für eine Query"""
+
+    def __init__(self):
+        self.index = None
+        self.argument_texts = []
+        self.argument_ids = []
+
+    def build(self, path, max_args=100):
+        for argument in ArgumentIterator(path, max_args):
+            self.argument_texts.append(argument.text)
+            self.argument_ids.append(argument.id)
+
+        self.index = BM25Okapi(self.argument_texts)
+
+    def load(self, path):
+        """Falls es einen Index gibt, der gespeichert wurde, kann dieser hier
+        geladen werden. Dabei wird `bm25_index` definiert.
+
+        Args:
+            path (str): Pfad zur Datei
+        """
+
+        with open(path, 'rb') as f_in:
+            self.index = pickle.load(f_in)
+
+    def store(self, path):
+        """Speichere den Index, falls dieser existiert, in eine Datei
+
+        Args:
+            path (str): Dateipfad
+        """
+
+        assert self.index is not None
+        with open(index_path, 'wb') as f_out:
+            pickle.dump(self.index, f_out)
+
+    def get_top_n_ids(self, query, top_n=10):
+        """Suche für die gegebene Query die top `top_n` Ergebnisse
+
+        Args:
+            query (str): Anfrage
+            top_n (int): Die Top N Ergebnisse
+
+        Returns:
+            list: Gefundene Indizes sortiert nach Relevanz
+        """
+
+        assert self.index is not None
+        return self.index.get_top_n(query.split(), self.argument_ids, n=top_n)
+
+
 class Argument2Vec:
     def __init__(self, w2v_model, path, max_args=100):
         """Modell, das aus Argumenten einen Vektor generiert
@@ -68,7 +120,8 @@ class Argument2Vec:
             w2v_model (Word2Vec): Moodell für Word-Embeddings
         """
 
-        self.arguments_iterator = ArgumentIterator(path, max_args)
+        self.arguments_path = path
+        self.max_args = max_args
         self.w2v_model = w2v_model
         self.av = dict()
         self._build()
@@ -109,19 +162,33 @@ class Argument2Vec:
 
         return best_arguments
 
-    def _centeroid(self, data):
-        length, dim = data.shape
-        return np.array([np.sum(data[:, i])/length for i in range(dim)])
+    def _is_valid_argument(self, argument):
+        valid = len(argument.text) > 5
+        return valid
 
     def _build(self):
         vector_size = self.w2v_model.vector_size
-        for argument in tqdm(self.arguments_iterator):
-            if argument.text and len(argument.text) > 5:
+
+        arguments = ArgumentIterator(self.arguments_path, self.max_args)
+        for argument in tqdm(arguments):
+            if self._is_valid_argument(argument):
                 embedding_matrix = np.zeros((len(argument.text), vector_size))
+
+                unknown_word_count = 0
+                unknown_words = []
                 for i, word in enumerate(argument.text):
                     try:
-                        embedding_matrix[i] = self.w2v_model.wv[word]
+                        embedding_vec = self.w2v_model.wv[word]
+                        # embedding_vec /= np.linalg.norm(embedding_vec)
+                        # embedding_matrix[i] = embedding_vec
                     except Exception as e:
-                        pass
-                centeroid = self._centeroid(embedding_matrix)
-                self.av[argument.id] = centeroid
+                        unknown_word_count += 1
+                        unknown_words.append(word)
+                centroid = np.sum(embedding_matrix, axis=0) / (
+                    embedding_matrix.shape[0]
+                )
+
+            print(
+                f"UNK: {unknown_word_count} = {(unknown_word_count / len(argument.text)):.4f}"
+            )
+            self.av[argument.id] = centroid

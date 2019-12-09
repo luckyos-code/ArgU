@@ -86,3 +86,19 @@ class ArgumentIterator:
     def __iter__(self):
         for argument in read_arguments(self.path, self.max_args):
             yield argument
+
+
+class FindArgumentIterator:
+    def __init__(self, path, ids):
+        self.path = path
+        self.ids = ids
+
+    def __iter__(self):
+        found_arguments = 0
+        for argument in read_arguments(self.path, -1):
+            if argument.id in self.ids:
+                yield argument
+
+                found_arguments += 1
+                if found_arguments == len(self.ids):
+                    break
