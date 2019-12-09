@@ -9,6 +9,8 @@ verify_ssl = true
 nltk = "==3.3"
 tqdm = "*"
 rootpath = "*"
+numpy = "*"
+gensim = "*"
 
 [requires]
 python_version = "3.7"
