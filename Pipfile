@@ -86,6 +86,7 @@ Werkzeug = "==0.16.0"
 sklearn = "*"
 pandas = "*"
 matplotlib = "*"
+nltk = "*"
 
 [requires]
 python_version = "3.7"
