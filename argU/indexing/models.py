@@ -114,7 +114,7 @@ class Text2Vec:
     def __init__(self, w2v_model, iterable_texts):
         """Modell, das aus beliebigen Texten einen Vektor generiert
 
-        Arguments:
+        Args:
             iterable_texts (Text, iterable): Vorverarbeitete Argumente
             w2v_model (Word2Vec): Moodell für Word-Embeddings
         """
