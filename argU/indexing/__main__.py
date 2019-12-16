@@ -5,7 +5,7 @@ import sys
 
 from utils.reader import read_arguments, read_debates, ArgumentIterator
 from utils.reader import DebateTitelsIterator, DebateIterator
-from utils.reader import ArgumentTextsIterator
+from utils.reader import ArgumentTextsIterator, read_csv_header
 from utils.beautiful import print_argument_texts, print_embedding_examples
 from utils.beautiful import print_debate_titles
 from indexing.models import CBOW, Text2Vec, BM25, Argument2Vec
@@ -23,9 +23,10 @@ MODEL_TYPE = 'debate'
 MODEL_PATH = os.path.join(RESOURCES_PATH, f'cbow.{MODEL_TYPE}.model')
 
 max_args = 5000
-max_debates = 10000
-query = 'Donald Trump'
+max_debates = 5000
+query = 'gay marriage'
 
+# print(read_csv_header(CSV_PATH))
 
 ######################################################################
 # CBOW

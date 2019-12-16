@@ -66,3 +66,7 @@ Groß- und Kleinschreibung wurde belassen, um Begriffe wie "US" und "us" untersc
 ## Das Argument-Embedding
 
 Um zu bestimmen, welchem Thema die Wörter einer Query angehören, wird jedem Argument genau ein Embedding zugeordnet, das sich aus den einzelnen Word-Embeddings zusammensetzt.
+
+## Das Debatten-Embedding
+
+Insgesamt gibt es 59.637 verschiedene Debatten in dem Datensatz.

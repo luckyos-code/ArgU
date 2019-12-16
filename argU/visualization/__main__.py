@@ -22,9 +22,9 @@ pca = PCA(n_components=2)
 cbow = CBOW()
 cbow.load(MODEL_PATH)
 
-query = 'bible'
+query = 'marijuana'
 max_args = 2000
-max_debates = 10000
+max_debates = 2000
 
 if MODEL_TYPE == 'args':
     arguments = ArgumentIterator(CSV_PATH, max_args=max_args)
@@ -60,7 +60,7 @@ ax.scatter(
 )
 
 ax.grid()
-plt.show()
+# plt.show()
 
-# image_path = os.path.join(IMAGES_PATH, f"{query}_{max_args}.png")
-# plt.savefig(image_path, bbox_inches='tight', pad_inches=0)
+image_path = os.path.join(IMAGES_PATH, f"{query}_{max_args}_{MODEL_TYPE}.png")
+plt.savefig(image_path, bbox_inches='tight', pad_inches=0)
