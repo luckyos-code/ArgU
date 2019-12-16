@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "arguproject",
+  "private_key_id": "954758a723ab4c79d24957820936949bda8047a7",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCo+MwxSaAAe4U6\npuOcQDurAM+L0i9zxjQKqV6C+WO5svNbZzzeswNaM3yCnnHz8TyfxKEEoNb+dled\noepUIPJmc3i684RiLKEljKfZIF3fEF7aPRftVo6UDroUiUsHmG4/cAB5QgZgONHC\nZREWQoqVyEFc0IQYGjTgqvKq9YLknFygq9GbG7XqCH4MvTxCHH10XM/X/mYcgW9u\nscC6Bo8Nx6LVe9i47JsfT58QQzS1C+l7BusDZXbv59cRDenYed8yaXQZUmeA1dZj\nWAmPOeFAVdoXsUYQk/PQFeo+cxnaQBA3Q0Y1G+2NEh+97v4OTrtePJRtwHYwg84J\npDwafLe9AgMBAAECggEAFU22+uDYOC9amww3BrhvfW4e/Lctjeh3n79+X79/JAbM\nmWHRAhfqTIlQwawl3FZ2KQOStIFt0cvMXJ6xK1WzEhktZ86zimgrkg8ji2PCChFn\nkBbjSSRgWgjoS5YKvGSqw7tEiAU7xg5r3dk9uAOAMwW6PfA5M0u8jnXnHghRri5X\nKNY4DD4GkwKQ1A9FEK1bYjLjLTsoGxqpZg57uTO7V6DzCav+NN15WJHZ9JMTUR18\nOV5v+z7lVhqMQKJgJJhA33SJaMKsrOZ5YUJiTUDELTfwfa75uSrxc3SQvH/SM4iI\ntF5PRDg1oKhXXY2EZu+pFxxSM13I0TNXsUWP8qYJgQKBgQDTRhyahXritVosu45w\nadT5+fDt7vRCF7mYkTVb7LqmHbB7CoqbOS9qn8c6tE4MuSOiHQU7rKgzipyNhzgz\nkoh+cfN365iArFEfI1EY9vT8MzD+jiWwfzgYb0wwSAv2X76C6ALpV7pQSbxJmVJZ\nvFxYPPVgKbQaprx6Hk2phTLDgQKBgQDMviYAoFeMrlJCJbgbQx3s8M36BsW8j28k\n8R3vZ1+dBQ53q17MP0RKHI2miD79nBHA9Fn9TOf8SIXTQ99es8tVIH5isLOnKLFq\nLo12rra58JUTwEbYSrDEscCWof9Ld0LYDMkzPymeSiEQoiQLUJrac0yR6YCq6mZt\nBO30Ie0iPQKBgQC2S7S6j5nsq9ZW6q6IyIh/+O2uH5SawqXdws1rt+OFGfEA+aOH\nM9x5/8uEF7eQut7ILoopZ1zqvBtA8v/HYBRuJhyRyLMZs5V7bJm5FL1mLzWDL1vN\n4regPchbkI7h0tMrWM3KUWvtgvH3/1dTHnf/mvmOM+23YU8Xf7Y7IzceAQKBgDRZ\npjPgy6Hv7J53MITf+2XbCH+WfbbB4gRLFoFhKCRo55MXoUyOHLLqbBmZmqmT30I7\n+Ep5AJQUIwuqvhFj3Witv0MStUzXbc2di5Q+BgCzEBsVvceOCXaxkHGziChOnSvK\n0SMmUkjj4WJ0Ysz11jJm6rwgPUL2Xiwf54vVpOFtAoGBAKNsFck3ZoRVRGRjvM9R\nkZaXE11ER39MeJ0CinoHFasvujYY3C8voFhdIGBTqHCdN8b2SICoDLG4ududpgRz\n79dcS0klzDuUB2nrpysEszyXAKQkVz+tTvHol6m2o30ZiozsULr0FoBeWlHQbIQ3\nowrzhw7CpucEmUHxPlkdo0OD\n-----END PRIVATE KEY-----\n",
+  "client_email": "arguproject@arguproject.iam.gserviceaccount.com",
+  "client_id": "118287370578848526324",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/arguproject%40arguproject.iam.gserviceaccount.com"
+}

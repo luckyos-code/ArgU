@@ -4,9 +4,20 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import twitter_samples, stopwords
 from nltk.tag import pos_tag
 from nltk.tokenize import word_tokenize
-from nltk import FreqDist, classify, NaiveBayesClassifier
+from nltk import FreqDist, classify, NaiveBayesClassifier, download as nltk_download
 
 import re, string, random
+
+def get_nltk_data():
+    data = [
+        'twitter_samples',
+        'punkt',
+        'wordnet',
+        'averaged_perceptron_tagger',
+        'stopwords'
+    ]
+    for each in data:
+        nltk_download(each)
 
 def remove_noise(tweet_tokens, stop_words = ()):
 
@@ -39,8 +50,8 @@ def get_all_words(cleaned_tokens_list):
 def get_tweets_for_model(cleaned_tokens_list):
     for tweet_tokens in cleaned_tokens_list:
         yield dict([token, True] for token in tweet_tokens)
-
-if __name__ == "__main__":
+        
+def run(rows, mode):
 
     positive_tweets = twitter_samples.strings('positive_tweets.json')
     negative_tweets = twitter_samples.strings('negative_tweets.json')
@@ -89,9 +100,25 @@ if __name__ == "__main__":
 
     print(classifier.show_most_informative_features(10))
 
-    custom_tweet = "I ordered just once from TerribleCo, they screwed up, never used the app again."
+#    custom_tweet = "I ordered just once from TerribleCo, they screwed up, never used the app again."
 
-    custom_tokens = remove_noise(word_tokenize(custom_tweet))
+#    custom_tokens = remove_noise(word_tokenize(custom_tweet))
 
-    print(custom_tweet, classifier.classify(dict([token, True] for token in custom_tokens)))
+#    print(custom_tweet, classifier.classify(dict([token, True] for token in custom_tokens)))
     
+    if mode == 'topics':
+        for row in rows:
+            query_text = row [5]
+            print(
+                '\''+query_text+'\'',
+                '\n  =',
+                classifier.classify(dict([token, True] for token in remove_noise(word_tokenize(query_text))))
+            )
+    elif mode == 'titles':
+        for row in rows:
+            title_text = row [5]
+            print(
+                '\''+title_text+'\'',
+                '\n  =',
+                classifier.classify(dict([token, True] for token in remove_noise(word_tokenize(title_text))))
+            )

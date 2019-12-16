@@ -11,6 +11,7 @@ tqdm = "*"
 rootpath = "*"
 numpy = "*"
 gensim = "*"
+google-cloud-language = "*"
 
 [requires]
 python_version = "3.7"
