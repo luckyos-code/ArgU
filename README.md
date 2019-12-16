@@ -12,3 +12,9 @@
 ### Modul excecution
 * Main Program: ``` $ python -m argU ```
 * For individual moduls, cd into directories and run ``` $ python -m [modulname] ```
+
+### Relevant Files
+* [arguments](https://zenodo.org/record/3274636#.XeAyUi03v4a)
+* [queries](https://github.com/webis-de/SIGIR-19/blob/master/Data/topics.csv)
+* [training data](https://git.informatik.uni-leipzig.de/lg80beba/argument-quality-evaluation/tree/master/Dataset%20Final%20Study)
+* [args frontend](https://git.webis.de/args)

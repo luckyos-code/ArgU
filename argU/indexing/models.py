@@ -15,9 +15,9 @@ class EpochLogger(CallbackAny2Vec):
 
     def __init__(self, store_path=None, epochs_store=1):
         self.epoch = 1
-        self.store_path = store_path
         self.epochs_store = epochs_store
         self.last_time = None
+        self.store_path = store_path
 
     def on_epoch_begin(self, model):
         self.last_time = time()
@@ -39,10 +39,9 @@ class CBOW:
         self.size = 300
         self.model = None
 
-    def build(self, path, max_args=100, min_count=3, store_path=None):
-        arguments_iter = ArgumentTextsIterator(path, max_args)
+    def build(self, iterable, min_count=3, store_path=None):
         self.model = Word2Vec(
-            arguments_iter,
+            iterable,
             size=self.size,
             window=self.window,
             min_count=min_count,
@@ -111,76 +110,73 @@ class BM25:
         return self.index.get_top_n(query.split(), self.argument_ids, n=top_n)
 
 
-class Argument2Vec:
-    def __init__(self, w2v_model, path, max_args=100):
-        """Modell, das aus Argumenten einen Vektor generiert
+class Text2Vec:
+    def __init__(self, w2v_model, iterable_texts):
+        """Modell, das aus beliebigen Texten einen Vektor generiert
 
         Arguments:
-            arguments_iterator (Argument, iterable): Vorverarbeitete Argumente
+            iterable_texts (Text, iterable): Vorverarbeitete Argumente
             w2v_model (Word2Vec): Moodell für Word-Embeddings
         """
 
-        self.arguments_path = path
-        self.max_args = max_args
         self.w2v_model = w2v_model
-        self.av = dict()
+        self.iterable_texts = iterable_texts
+
+        self.tv = dict()
         self._build()
-
-    def load(self, path):
-        pass
-
-    def save(self, path):
-        pass
 
     def most_similar(self, query, topn=5):
         query_embeddings = [self.w2v_model.wv[word] for word in query.split()]
+        if topn == -1:
+            topn = len(self.tv)
 
-        arguments = []
+        ids = []
         similarities = []
 
-        for (argument_id, argument_embedding) in self.av.items():
+        for (id, text_embedding) in self.tv.items():
             sim = 0
             for query_embedding in query_embeddings:
-                a = np.dot(np.transpose(query_embedding), argument_embedding)
+                a = np.dot(np.transpose(query_embedding), text_embedding)
                 b = np.linalg.norm(query_embedding) * np.linalg.norm(
-                    argument_embedding
+                    text_embedding
                 )
                 sim += a / b
 
             sim *= (1 / len(query_embeddings))
-
             similarities.append(sim)
-            arguments.append(argument_id)
+            ids.append(id)
 
         similarities = np.asarray(similarities)
         best_indices = np.argpartition(similarities, -topn)[-topn:]
         best_indices = best_indices[np.argsort(similarities[best_indices])]
 
-        best_arguments = []
+        best_texts = []
         for i in best_indices:
-            best_arguments.append(arguments[i])
+            best_texts.append(ids[i])
 
-        return best_arguments
+        return best_texts, np.sort(similarities)[::-1]
 
-    def _is_valid_argument(self, argument):
-        valid = len(argument.text) > 5
-        return valid
+    def _is_valid(self, input_text):
+        return True
 
     def _build(self):
         vector_size = self.w2v_model.vector_size
 
-        arguments = ArgumentIterator(self.arguments_path, self.max_args)
-        for argument in tqdm(arguments):
-            if self._is_valid_argument(argument):
-                embedding_matrix = np.zeros((len(argument.text), vector_size))
+        for iterable_text in tqdm(self.iterable_texts):
+            if self._is_valid(iterable_text):
+                embedding_matrix = np.zeros(
+                    (len(iterable_text.text), vector_size)
+                )
 
                 unknown_word_count = 0
                 unknown_words = []
-                for i, word in enumerate(argument.text):
+                for i, word in enumerate(iterable_text.text):
                     try:
                         embedding_vec = self.w2v_model.wv[word]
-                        # embedding_vec /= np.linalg.norm(embedding_vec)
-                        # embedding_matrix[i] = embedding_vec
+                        embedding_vec = np.true_divide(
+                            embedding_vec, np.linalg.norm(embedding_vec)
+                        )
+                        embedding_matrix[i] = embedding_vec
                     except Exception as e:
                         unknown_word_count += 1
                         unknown_words.append(word)
@@ -188,7 +184,16 @@ class Argument2Vec:
                     embedding_matrix.shape[0]
                 )
 
-            print(
-                f"UNK: {unknown_word_count} = {(unknown_word_count / len(argument.text)):.4f}"
-            )
-            self.av[argument.id] = centroid
+                # print(
+                #     f"UNK: {unknown_word_count} = {(unknown_word_count / len(argument.text)):.4f}"
+                # )
+                self.tv[iterable_text.id] = centroid
+
+
+class Argument2Vec(Text2Vec):
+    def __init__(self, w2v_model, iterable_texts):
+        Text2Vec.__init__(self, w2v_model, iterable_texts)
+
+    def _is_valid(self, argument):
+        valid = len(argument.text) > 5
+        return valid
