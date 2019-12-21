@@ -59,6 +59,7 @@ class Argument:
 
     def __init__(self, row):
         self.id = row[9]
+        self.debate_id = row[2]
         self.text_raw = row[0]
         self.stance = row[1]
         self.previous_argument = row[3]
