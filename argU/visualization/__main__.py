@@ -22,7 +22,7 @@ pca = PCA(n_components=2)
 cbow = CBOW()
 cbow.load(MODEL_PATH)
 
-query = 'marijuana'
+query = 'gay marriage'
 max_args = 2000
 max_debates = 2000
 

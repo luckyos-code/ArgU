@@ -197,3 +197,12 @@ class Argument2Vec(Text2Vec):
     def _is_valid(self, argument):
         valid = len(argument.text) > 5
         return valid
+
+
+class Debate2Vec(Text2Vec):
+    def __init__(self, w2v_model, iterable_texts):
+        Text2Vec.__init__(self, w2v_model, iterable_texts)
+
+    def _is_valid(self, data):
+        valid = len(data.text) > 2
+        return valid

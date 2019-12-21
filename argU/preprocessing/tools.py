@@ -23,5 +23,4 @@ def denoise(text):
             word_split = word.split()
             if word != '':
                 denoised_text.append(word)
-
     return denoised_text

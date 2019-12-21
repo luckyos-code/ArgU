@@ -39,19 +39,37 @@ def read_csv_header(path):
         return next(csv_reader)
 
 
-class Argument():
+class Text:
+    """Allgemeines Textobjekt, das als Basis für Argumente und Debatten dient
+
+    Args:
+        raw_text (str): Unbearbeiteter Text
+    """
+
+    def __init__(self, row):
+        self.raw_text = None
+
+    @property
+    def text(self):
+        return self.raw_text
+
+
+class Argument:
     """Argument, das aus einer Zeile der CSV generiert wird"""
 
     def __init__(self, row):
         self.id = row[9]
-        self.text = tools.denoise(row[0])
         self.text_raw = row[0]
         self.stance = row[1]
         self.previous_argument = row[3]
         self.next_argument = row[8]
 
+    @property
+    def text(self):
+        return tools.denoise(self.text_raw)
 
-class Debate():
+
+class Debate:
     """Debatte, die aus einer Zeile der CSV generiert wird"""
 
     def __init__(self, row):
