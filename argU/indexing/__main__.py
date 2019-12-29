@@ -12,6 +12,10 @@ from indexing.models import CBOW, Text2Vec, BM25, Argument2Vec
 
 parser = argparse.ArgumentParser()
 parser.add_argument('status', default='train', choices=['train', 'load'])
+parser.add_argument(
+    '--model', default='arguments',
+    choices=['arguments', 'debates']
+)
 args = parser.parse_args()
 
 
@@ -19,14 +23,17 @@ ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 CSV_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
 
-MODEL_TYPE = 'debate'
+MODEL_TYPE = args.model
 MODEL_PATH = os.path.join(RESOURCES_PATH, f'cbow.{MODEL_TYPE}.model')
 
-max_args = 5000
-max_debates = 5000
+max_loaded_args = 5000
+max_loaded_debates = 500
 query = 'gay marriage'
 
-# print(read_csv_header(CSV_PATH))
+print(f"Model Type: {MODEL_TYPE}")
+print(f"Status: {args.status}\n")
+
+sys.exit(0)
 
 ######################################################################
 # CBOW
@@ -41,7 +48,7 @@ if args.status == 'train':
             store_path=MODEL_PATH,
             min_count=1,
         )
-    elif MODEL_TYPE == 'args':
+    elif MODEL_TYPE == 'arguments':
         cbow.build(
             ArgumentTextIterator(
                 CSV_PATH,

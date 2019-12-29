@@ -1,7 +1,6 @@
 import os
-import sys
 import rootpath
-sys.path.append(os.path.join(rootpath.detect(), 'argU'))
+import test_settings
 
 from utils.reader import ArgumentIterator
 
