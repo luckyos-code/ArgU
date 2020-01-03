@@ -1,29 +1,29 @@
 import os
 import rootpath
-import argparse
 import sys
 
-from utils.reader import read_arguments, ArgumentIterator
-from utils.reader import ArgumentTextIterator, read_csv_header
-from utils.beautiful import print_argument_texts, print_embedding_examples
-from indexing.models import CBOW, Text2Vec, BM25, Argument2Vec
-
-parser = argparse.ArgumentParser()
-parser.add_argument('status', default='train', choices=['train', 'load'])
-args = parser.parse_args()
+from utils.reader import read_arguments, ArgumentTextIterator
+from utils.beautiful import print_argument_texts
+from indexing.models import CBOW, BM25Manager, Argument2Vec, MixtureModel
 
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 CSV_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
-MODEL_PATH = os.path.join(RESOURCES_PATH, f'cbow.arguments.model')
 
-first_n_args = 5000
+CBOW_MODEL_PATH = os.path.join(RESOURCES_PATH, f'cbow.arguments.model')
+A2V_MODEL_PATH = os.path.join(RESOURCES_PATH, 'a2v.model')
+BM25_PATH = os.path.join(RESOURCES_PATH, 'bm25.model')
+
+first_n_args = 1000
+train_cbow = False
+train_a2v = False
+train_bm25 = False
 
 ######################################################################
 # CBOW
 
 cbow = CBOW()
-if args.status == 'train':
+if train_cbow:
     cbow.build(
         ArgumentTextIterator(
             CSV_PATH,
@@ -32,31 +32,36 @@ if args.status == 'train':
         store_path=MODEL_PATH,
         min_count=8,
     )
-elif args.status == 'load':
-    cbow.load(MODEL_PATH)
-
-print(f"Vokabular Länge: {len(cbow.model.wv.vocab)}")
-
-# print_embedding_examples(cbow.model, ['drugs', 'Trump', 'abortion', 'islam'])
-
+else:
+    cbow.load(CBOW_MODEL_PATH)
 
 ######################################################################
-# Arg2Vec und Test
+# Arg2Vec
 
-arguments = ArgumentIterator(CSV_PATH, max_args=first_n_args)
-a2v_model = Argument2Vec(cbow.model, arguments)
-
-query = 'gay marriage'
-ids, similarities = a2v_model.most_similar(query, topn=10)
-print()
-print(f"Query: {query}")
-print_argument_texts(ids, CSV_PATH)
+if train_a2v:
+    a2v = Argument2Vec(cbow.model, CSV_PATH)
+    a2v.build(max_args=max_args)
+    a2v.store(A2V_MODEL_PATH)
+else:
+    a2v = Argument2Vec.load(A2V_MODEL_PATH)
 
 ######################################################################
 # BM25
 
-bm25 = BM25()
-# bm25.build(CSV_PATH, max_args=max_args)
-# best_argument_ids = bm25.get_top_n_ids(query, top_n=15)
+if train_bm25:
+    bm25_manager = BM25Manager()
+    bm25_manager.build(CSV_PATH, max_args=first_n_args)
+    bm25_manager.store(BM25_PATH)
+else:
+    bm25_manager = BM25Manager.load(BM25_PATH)
 
-# print_argument_texts(best_argument_ids, CSV_PATH)
+######################################################################
+# Run query
+
+query = 'gay marriage'
+
+mixture_model = MixtureModel(a2v, bm25_manager)
+sims = mixture_model.mmsims(query, alpha=0.6)
+
+best_arg = max(sims.items(), key=lambda item: item[1][2])[0]
+print(print_argument_texts([best_arg], CSV_PATH, print_all=True))

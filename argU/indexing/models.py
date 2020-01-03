@@ -84,7 +84,8 @@ class BM25Manager:
 
         self.index = BM25Okapi(self.argument_texts)
 
-    def load(self, path):
+    @staticmethod
+    def load(path):
         """Falls es einen Index gibt, der gespeichert wurde, kann dieser hier
         geladen werden. Dabei wird `bm25_index` definiert.
 
@@ -93,7 +94,7 @@ class BM25Manager:
         """
 
         with open(path, 'rb') as f_in:
-            self.index = pickle.load(f_in)
+            return pickle.load(f_in)
 
     def store(self, path):
         """Speichere den Index, falls dieser existiert, in eine Datei
@@ -103,8 +104,8 @@ class BM25Manager:
         """
 
         assert self.index is not None
-        with open(index_path, 'wb') as f_out:
-            pickle.dump(self.index, f_out)
+        with open(path, 'wb') as f_out:
+            pickle.dump(self, f_out)
 
     def get_top_n_ids(self, query, top_n=10):
         """Suche für die gegebene Query die top `top_n` Ergebnisse
