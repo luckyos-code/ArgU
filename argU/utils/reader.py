@@ -1,5 +1,8 @@
 import csv
+import numpy as np
 from preprocessing import tools
+from numpy import linalg as LA
+from sklearn.preprocessing import normalize
 
 
 def read_csv(path, max_rows=-1):
@@ -39,20 +42,51 @@ def read_csv_header(path):
         return next(csv_reader)
 
 
-class Text:
-    """Allgemeines Textobjekt, das als Basis für Argumente und Debatten dient
+# class Text:
+#     """Allgemeines Textobjekt, das als Basis für Argumente und Debatten dient
 
-    Args:
-        raw_text (str): Unbearbeiteter Text
-    """
+#     Args:
+#         raw_text (str): Unbearbeiteter Text
+#     """
 
-    def __init__(self, row):
-        self.raw_text = None
+#     def __init__(self, row):
+#         self.raw_text = None
 
-    @property
-    def text(self):
-        return self.raw_text
+#     @property
+#     def text(self):
+#         return self.raw_text
 
+
+# class Debate:
+#     """Debatte, die aus einer Zeile der CSV generiert wird"""
+
+#     def __init__(self, row):
+#         self.id = row[2]
+#         self.text = row[5].split()
+
+
+# def read_debates(path, max_debates=-1):
+#     """Generator, um die CSV schrittweise in Debatten-Objekte umzuwandelm
+
+#     Args:
+#         path (str): Pfad zur CSV-Datei
+#         max_debates (int, default=-1): Maximale Anzahl verschiedener Debatten.
+#             Bei -1 werden alle Debatten eingelesen.
+
+#     Yields:
+#         Debate
+#     """
+
+#     debate_ids = set([])
+#     for row in read_csv(path, max_rows=-1):
+#         debate = Debate(row)
+
+#         if debate.id not in debate_ids:
+#             debate_ids.add(debate.id)
+#             yield debate
+
+#         if len(debate_ids) == max_debates:
+#             break
 
 class Argument:
     """Argument, das aus einer Zeile der CSV generiert wird"""
@@ -69,13 +103,62 @@ class Argument:
     def text(self):
         return tools.denoise(self.text_raw)
 
+    def get_vec(self, model, vector_size):
+        """Erstelle einen Vektor aus dem Dokument
 
-class Debate:
-    """Debatte, die aus einer Zeile der CSV generiert wird"""
+        Returns:
+            (numpy.array or None, list or None): Embedding und unbekannte Wörter.
+                Ist keines der Wörter bekannt, wird (None, None) zurückgegeben.
+        """
 
-    def __init__(self, row):
-        self.id = row[2]
-        self.text = row[5].split()
+        emb_matrix = np.zeros(
+            (len(self.text), vector_size)
+        )
+
+        unk_word_count = 0
+        unk_words = []
+        for i, word in enumerate(self.text):
+            try:
+                emb_vec = model.wv[word]
+                emb_matrix[i] = emb_vec / LA.norm(emb_vec)
+            except Exception as e:
+                unk_word_count += 1
+                unk_words.append(word)
+
+        if emb_matrix.shape[0] == 0:
+            return (None, None)
+
+        if len(self.text) == len(unk_words):
+            return (None, None)
+
+        return (
+            np.sum(emb_matrix, axis=0) / (emb_matrix.shape[0]),
+            unk_words
+        )
+
+
+class ArgumentTextIterator:
+    """Iterator für die Texte alle Argumente"""
+
+    def __init__(self, path, max_args=-1):
+        self.path = path
+        self.max_args = max_args
+
+    def __iter__(self):
+        for argument in read_arguments(self.path, self.max_args):
+            yield argument.text
+
+
+class ArgumentIterator:
+    """Iterator für alle Argument Objekte"""
+
+    def __init__(self, path, max_args=-1):
+        self.path = path
+        self.max_args = max_args
+
+    def __iter__(self):
+        for argument in read_arguments(self.path, self.max_args):
+            yield argument
 
 
 def read_arguments(path, max_args=-1):
@@ -92,74 +175,6 @@ def read_arguments(path, max_args=-1):
 
     for row in read_csv(path, max_rows=max_args):
         yield Argument(row)
-
-
-def read_debates(path, max_debates=-1):
-    """Generator, um die CSV schrittweise in Debatten-Objekte umzuwandelm
-
-    Args:
-        path (str): Pfad zur CSV-Datei
-        max_debates (int, default=-1): Maximale Anzahl verschiedener Debatten.
-            Bei -1 werden alle Debatten eingelesen.
-
-    Yields:
-        Debate
-    """
-
-    debate_ids = set([])
-    for row in read_csv(path, max_rows=-1):
-        debate = Debate(row)
-
-        if debate.id not in debate_ids:
-            debate_ids.add(debate.id)
-            yield debate
-
-        if len(debate_ids) == max_debates:
-            break
-
-
-class ArgumentTextsIterator:
-    def __init__(self, path, max_args=-1):
-        self.path = path
-        self.max_args = max_args
-
-    def __iter__(self):
-        for argument in read_arguments(self.path, self.max_args):
-            yield argument.text
-
-
-class DebateTitelsIterator:
-    def __init__(self, path, max_debates=-1):
-        self.path = path
-        self.max_debates = max_debates
-
-    def __iter__(self):
-        for debate in read_debates(self.path, self.max_debates):
-            yield debate.text
-
-
-class DebateIterator:
-    def __init__(self, path, max_debates=-1, attribute=None):
-        self.path = path
-        self.max_debates = max_debates
-        self.attribute = attribute
-
-    def __iter__(self):
-        for debate in read_debates(self.path, self.max_debates):
-            if self.attribute is None:
-                yield debate
-            else:
-                yield getattr(debate, self.attribute)
-
-
-class ArgumentIterator:
-    def __init__(self, path, max_args=-1):
-        self.path = path
-        self.max_args = max_args
-
-    def __iter__(self):
-        for argument in read_arguments(self.path, self.max_args):
-            yield argument
 
 
 class FindArgumentIterator:
@@ -185,30 +200,55 @@ class FindArgumentIterator:
 
                 found_arguments += 1
                 if found_arguments == len(self.ids):
-                    break
+                    return
+        print('Not all arguments found...')
 
 
-class FindDebateIterator:
-    """Suche gegebene Debatten anhand vorgegebener IDs
+# class DebateTitelsIterator:
+#     def __init__(self, path, max_debates=-1):
+#         self.path = path
+#         self.max_debates = max_debates
 
-    Args:
-        path (str): Pfad zur CSV Datei
-        ids (list): Liste von IDs
+#     def __iter__(self):
+#         for debate in read_debates(self.path, self.max_debates):
+#             yield debate.text
 
-    Yield:
-        Debate
-    """
 
-    def __init__(self, path, ids):
-        self.path = path
-        self.ids = ids
+# class DebateIterator:
+#     def __init__(self, path, max_debates=-1, attribute=None):
+#         self.path = path
+#         self.max_debates = max_debates
+#         self.attribute = attribute
 
-    def __iter__(self):
-        found_debates = 0
-        for debate in read_debates(self.path, -1):
-            if debate.id in self.ids:
-                yield debate
+#     def __iter__(self):
+#         for debate in read_debates(self.path, self.max_debates):
+#             if self.attribute is None:
+#                 yield debate
+#             else:
+#                 yield getattr(debate, self.attribute)
 
-                found_debates += 1
-                if found_debates == len(self.ids):
-                    break
+
+# class FindDebateIterator:
+#     """Suche gegebene Debatten anhand vorgegebener IDs
+
+#     Args:
+#         path (str): Pfad zur CSV Datei
+#         ids (list): Liste von IDs
+
+#     Yield:
+#         Debate
+#     """
+
+#     def __init__(self, path, ids):
+#         self.path = path
+#         self.ids = ids
+
+#     def __iter__(self):
+#         found_debates = 0
+#         for debate in read_debates(self.path, -1):
+#             if debate.id in self.ids:
+#                 yield debate
+
+#                 found_debates += 1
+#                 if found_debates == len(self.ids):
+#                     break

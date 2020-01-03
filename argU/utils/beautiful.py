@@ -1,32 +1,40 @@
-from utils.reader import FindArgumentIterator, FindDebateIterator
+from utils.reader import FindArgumentIterator
 
 
-def print_argument_texts(ids, path):
+def print_argument_texts(ids, path, print_all=False):
     """Gib zu den gefundenen Argument IDs die passenden Meta-Informationen aus
 
     Args:
         ids (list): Argument IDs
         path (str): Pfad zur CSV Datei mit den Argumenten
+        print_all (bool): Soll alles angezeigt werden?
     """
-    for argument in FindArgumentIterator(path, ids):
-        print((
-            f"Length = {len(argument.text)}, "
-            f"Text = {' '.join(argument.text_raw.split()[:25])} ..."
-        ))
+    if print_all:
+        for argument in FindArgumentIterator(path, ids):
+            print((
+                f"Length = {len(argument.text)}, "
+                f"Text = {' '.join(argument.text_raw.split())}\n"
+            ))
+    else:
+        for argument in FindArgumentIterator(path, ids):
+            print((
+                f"Length = {len(argument.text)}, "
+                f"Text = {' '.join(argument.text_raw.split()[:25])} ...\n"
+            ))
 
 
-def print_debate_titles(ids, path):
-    """Gib zu den gefundenen Debatten IDs die passenden Titel aus
+# def print_debate_titles(ids, path):
+#     """Gib zu den gefundenen Debatten IDs die passenden Titel aus
 
-    Args:
-        ids (list): Debatten IDs
-        path (str): Pfad zur CSV Datei mit den Debatten
-    """
-    for debate in FindDebateIterator(path, ids):
-        print((
-            f"Length = {len(debate.text)}, "
-            f"Text = {' '.join(debate.text[:25])} ..."
-        ))
+#     Args:
+#         ids (list): Debatten IDs
+#         path (str): Pfad zur CSV Datei mit den Debatten
+#     """
+#     for debate in FindDebateIterator(path, ids):
+#         print((
+#             f"Length = {len(debate.text)}, "
+#             f"Text = {' '.join(debate.text[:25])} ..."
+#         ))
 
 
 def print_embedding_examples(model, words):

@@ -40,3 +40,4 @@ An example run for task 1 is:
 * [training data](https://git.informatik.uni-leipzig.de/lg80beba/argument-quality-evaluation/tree/master/Dataset%20Final%20Study)
 * [args frontend](https://git.webis.de/args)
 
+* Debatten: existieren davor weitere Argumente? Ist der erste Eintrag immer KEIN Argument?
