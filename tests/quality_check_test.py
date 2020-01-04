@@ -10,69 +10,101 @@ from utils.reader import ArgumentIterator
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 CSV_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
+STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
+
+URL_TOKEN = '<URL>'
+NUM_TOKEN = '<NUM>'
+NUM_RANGE_TOKEN = NUM_TOKEN + '-' + NUM_TOKEN
+PERCENT_TOKEN = '<PERCENT>'
+INFO_TOKEN = '<INFO>'
 
 
 def full_text_cleaning(text):
+    """Text wird als ein String betrachtet und gesäubert
+        Das ist der erste Schritt.
 
-    # 1. URLs säubern und durch <URL> ersetzen
+    Args:
+        text (str): Argument Text raw
+
+    Returns:
+        str: gesäuberten Text
+    """
+
+    # URLs säubern und durch `URL_TOKEN` ersetzen.
+    # Nicht alle URLs werden gefunden! (s. Schritt 2)
     text = text.replace('http://', ' http://')
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     found_urls = re.findall(url_regex, text)
-    text = re.sub(url_regex, '<URL>', text)
+    text = re.sub(url_regex, f' {URL_TOKEN} ', text)
 
     # Kommas splitten für bessere Verarbeitung von Nummern
     text = text.replace(', ', ' , ')
 
-    # 2. Entferne Sonderzeichen die zu oft hintereinander stehen
+    # Entferne Sonderzeichen die zu oft hintereinander stehen
     text = re.sub(r'\.{3,}', " ... ", text)
     text = re.sub(r'\?{2,}', '?', text)
     text = re.sub(r'\!{2,}', '!', text)
     text = re.sub(r'(\?\!|\!\?)+', '?!', text)
     text = text.replace('=', ' ')
 
-    # 3. Entferne eckige Klammern und Inhalt
+    # Entferne eckige Klammern und Inhalt
     barcket_pattern = r'\[.*?\]'
     found_brackets = re.findall(barcket_pattern, text)
     text = re.sub(barcket_pattern, '', text)
 
-    # 4. Prozente finden
+    # Prozente finden und durch `PERCENT_TOKEN`
     percent_pattern = r'\d+%'
-    # found_percent = re.findall(percent_pattern, text)
-    text = re.sub(percent_pattern, ' <PERCENT> ', text)
+    text = re.sub(percent_pattern, f' {PERCENT_TOKEN} ', text)
 
-    # 5. Runde Klammern
-
+    # Runde Klammern
     text = text.replace('{', '(')
     text = text.replace('}', ')')
 
     text = text.replace(')', ') ')
     text = text.replace('(', ' (')
 
-    # 6. Unterargumente finden und trennen
-    text = re.sub(r'([1-9]+[0-9]*[).-])', r'\1 ', text)
+    # Unterargumente finden und trennen: 1) ... 1. ... 1- ...
+    text = re.sub(r'([1-9]+[0-9]*[-][A-Za-z])', r' \1 ', text)
+    text = re.sub(r'([1-9]+[0-9]*[).])', r' \1 ', text)
 
-    # 7. Bindestriche
+    # Bindestriche
     text = re.sub(r'(\-{2,})', r' \1 ', text)
     text = re.sub(r'([a-zA-Z0-9]\-) ([a-zA-Z])', r'\1\2', text)
 
-    # Zitierung
+    # Zitierung korrigieren
     text = text.replace('“', '"')
     text = text.replace('”', '"')
+
+    # Sternchen entfernen
+    text = text.replace('*', '')
+
+    # Doppelpunkte formatieren
+    text = text.replace(':', ': ')
 
     return text
 
 
 def term_cleaning(text):
+    """Text wird gesplittet und Terme werden einzeln bereinigt
+        Schritt 2
+
+    Args:
+        text (str): Argument text nach 1. Schritt
+
+    Returns:
+        str: bereinigter Text
+    """
+
     new_terms = []
     splits = text.split()
 
     for i, term in enumerate(splits):
-        # 1. Zu kurze Sätze werden gelöscht (< 2 Wörter, aber nur für ? und !)
+        # Zu kurze Sätze mit (!, ?) werden gelöscht
         if i != 0:
             if splits[i - 1][-1] in '.?!' and splits[i][-1] in '!?':
                 continue
 
-        # 2. Was in Klammern steht verarbeiten
+        # Was in Klammern steht verarbeiten
         if term[0] == '(' and term[-1] == ')':
             enclosed = term[1:-1]
             if enclosed == '':
@@ -83,27 +115,54 @@ def term_cleaning(text):
                     if enclosed > 100:
                         raise ValueError
                 except ValueError:
-                    term = '<INFO>'
+                    term = INFO_TOKEN
 
-        # 3. Zu lange Elemente entfernen
+        # Zu lange Elemente entfernen
         if len(term) > 45:
             continue
 
-        # 4. Freie Zahlen
+        # Freie Zahlen Token
         try:
             int(term)
-            term = '<NUM>'
+            term = NUM_TOKEN
         except ValueError:
             pass
-        # Term einfügen
+
+        # Wertspannen Token
+        try:
+            nums = term.split('-')
+            if len(nums) == 2:
+                int(nums[0])
+                int(nums[1])
+                term = NUM_RANGE_TOKEN
+        except ValueError:
+            pass
+
+        # Weitere URLs, die vorher noch nicht abgefangen wurden
+        if '.com' in term:
+            term = URL_TOKEN
+
+        # ENDE: Term einfügen
         new_terms.append(term)
 
     return ' '.join(new_terms)
 
 
 def full_text_cleaning_end(text):
+    """Nachbearbeitung
+        Schritt 3
+
+    Args:
+        text (str): Argument text nach 1. Schritt
+
+    Returns:
+        str: bereinigter Text
+    """
+
     text = text.replace(' )', ')')
+    text = text.replace('( ', '(')
     text = text.replace(' ,', ',')
+
     return text
 
 
@@ -134,11 +193,17 @@ def full_text_cleaning_end(text):
 
 #     return sub_args
 
-
-for a in list(ArgumentIterator(CSV_PATH, max_args=50))[-10:]:
+short_args = []
+for a in ArgumentIterator(CSV_PATH, max_args=10000):
     a.text_raw = full_text_cleaning(a.text_raw)
     a.text_raw = term_cleaning(a.text_raw)
     a.text_raw = full_text_cleaning_end(a.text_raw)
 
-    print(a.text_raw)
-    print()
+    terms = a.text_raw.split()
+    if len(terms) <= 25:
+        print(a.text_raw)
+        short_args.append(a.text_raw)
+
+print(len(short_args))
+# print(a.text_raw)
+# print()
