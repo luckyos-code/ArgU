@@ -70,3 +70,43 @@ Um zu bestimmen, welchem Thema die Wörter einer Query angehören, wird jedem Ar
 ## Das Debatten-Embedding
 
 Insgesamt gibt es 59.637 verschiedene Debatten in dem Datensatz.
+
+## Säuberung
+
+Argumente die weniger als 25 Terme haben scheinen sinnlos zu sein! Man sollte sie löschen können. Beispiele:
+
+* Uhhh, please vote con. It seems my opponent has not been able to respond in time. Vote con :)
+* Vote Pro!
+* My arguments still stand.
+* Fast food is not that bad you have the choice of a salad or a hamburger
+* I have a losing streak almost in the twenties while you have a mear 5. . come back when you earn your fail.
+* Prove me wrong.
+* My opponet as found no way to counter myargument because its obviously true.
+* no no
+* Its unbelievable how stupid people are today, especially in America.
+* Extend my previous arguments into this Round. I request that the voters do not penalize my opponent for the forfeit.
+* I would like to keep this round for acceptance only. Thanks, DDD
+* Vote Pro!
+* Arguments Extanded
+* Arguments Extanded.
+* Arguments Extended.
+* Atheists believe in mythological concepts. Good luck.
+* Blake is a good player but not the best, as arguments show, and he has not posted any arguments, vote con.
+* Vote Con
+* LOOK at his states if you want to argue!)
+* I accept
+* racist mofo
+* No
+* I like animals, so it is not morally sound.
+* rape is sexy also do you play roblox
+* Accepted
+* And so i signs the contract NO VOTING FOR YOURSELF Btw, my choice of gun is the G18C (or G 18) Your arguments please, XD
+* I wish him well. I am sure he is busy with his studies.
+* Con forfeit <NUM> rounds so far. vote pro.
+* con
+* v
+* forfeit is not a race, i am the last to forfeit in this debate to last comes after first i did forfeit
+* i forfeit
+* I think the title of the debate speaks for itself. Good luck to Masterful/What50, you'll need it cunt.
+* True. Although you don't need to leave, you could try logging on while sober and see how that works out for you?
+* Ohhh Masterful - I showed you my dick. Answer me!

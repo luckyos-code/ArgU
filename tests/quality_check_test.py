@@ -194,16 +194,15 @@ def full_text_cleaning_end(text):
 #     return sub_args
 
 short_args = []
-for a in ArgumentIterator(CSV_PATH, max_args=10000):
+for a in ArgumentIterator(CSV_PATH, max_args=100):
     a.text_raw = full_text_cleaning(a.text_raw)
     a.text_raw = term_cleaning(a.text_raw)
     a.text_raw = full_text_cleaning_end(a.text_raw)
+    print(a.text_raw)
+    print()
 
     terms = a.text_raw.split()
     if len(terms) <= 25:
-        print(a.text_raw)
         short_args.append(a.text_raw)
 
 print(len(short_args))
-# print(a.text_raw)
-# print()
