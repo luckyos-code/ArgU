@@ -101,7 +101,7 @@ class Argument:
 
     @property
     def text(self):
-        return tools.denoise(self.text_raw)
+        return tools.clean_text(self.text_raw)
 
     def get_vec(self, model, vector_size):
         """Erstelle einen Vektor aus dem Dokument
@@ -146,7 +146,7 @@ class ArgumentTextIterator:
 
     def __iter__(self):
         for argument in read_arguments(self.path, self.max_args):
-            yield argument.text
+            yield argument.text.split()
 
 
 class ArgumentIterator:

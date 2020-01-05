@@ -79,7 +79,7 @@ class BM25Manager:
         """
 
         for argument in ArgumentIterator(path, max_args):
-            self.argument_texts.append(argument.text)
+            self.argument_texts.append(argument.text.split())
             self.argument_ids.append(argument.id)
 
         self.index = BM25Okapi(self.argument_texts)

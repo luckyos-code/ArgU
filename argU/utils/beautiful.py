@@ -13,7 +13,8 @@ def print_argument_texts(ids, path, print_all=False):
         for argument in FindArgumentIterator(path, ids):
             print((
                 f"Length = {len(argument.text)}, "
-                f"Text = {' '.join(argument.text_raw.split())}\n"
+                f"Text = {' '.join(argument.text_raw.split())}\n\n"
+                f"Clean = {argument.text}\n"
             ))
     else:
         for argument in FindArgumentIterator(path, ids):

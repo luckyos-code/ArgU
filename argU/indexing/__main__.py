@@ -10,12 +10,12 @@ ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 CSV_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
 
-CBOW_MODEL_PATH = os.path.join(RESOURCES_PATH, f'cbow.arguments.model')
+CBOW_MODEL_PATH = os.path.join(RESOURCES_PATH, f'cbow.model')
 A2V_MODEL_PATH = os.path.join(RESOURCES_PATH, 'a2v.model')
 BM25_PATH = os.path.join(RESOURCES_PATH, 'bm25.model')
 
-first_n_args = 1000
-train_cbow = False
+first_n_args = 10000
+train_cbow = True
 train_a2v = False
 train_bm25 = False
 
@@ -29,11 +29,13 @@ if train_cbow:
             CSV_PATH,
             max_args=first_n_args,
         ),
-        store_path=MODEL_PATH,
+        store_path=CBOW_MODEL_PATH,
         min_count=8,
     )
 else:
     cbow.load(CBOW_MODEL_PATH)
+
+sys.exit(0)
 
 ######################################################################
 # Arg2Vec

@@ -88,7 +88,7 @@ sklearn = "*"
 pandas = "*"
 matplotlib = "*"
 nltk = "==3.3"
-
+sentence-splitter = "*"
 
 [requires]
 python_version = "3.7"
