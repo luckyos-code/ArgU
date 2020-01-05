@@ -30,13 +30,11 @@ def denoise(text):
 
 URL_TOKEN = '<URL>'
 NUM_TOKEN = '<NUM>'
-NUM_RANGE_TOKEN = NUM_TOKEN + '-' + NUM_TOKEN
 PERCENT_TOKEN = '<PERCENT>'
 INFO_TOKEN = '<INFO>'
 special_tokens = [
     URL_TOKEN,
     NUM_TOKEN,
-    NUM_RANGE_TOKEN,
     PERCENT_TOKEN,
     INFO_TOKEN,
 ]
@@ -74,6 +72,7 @@ def full_text_cleaning(text):
     text = re.sub(r'\?{2,}', '?', text)
     text = re.sub(r'\!{2,}', '!', text)
     text = re.sub(r'(\?\!|\!\?)+', '?!', text)
+    text = re.sub(r'[~#§&@]', '', text)
     text = text.replace('=', ' ')
 
     # Ersetze Buchstaben, die mehr als 2 mal hintereinander stehen durch einen
@@ -87,10 +86,6 @@ def full_text_cleaning(text):
     barcket_pattern = r'\[.*?\]'
     found_brackets = re.findall(barcket_pattern, text)
     text = re.sub(barcket_pattern, '', text)
-
-    # Prozente finden und durch `PERCENT_TOKEN`
-    percent_pattern = r'\d+%'
-    text = re.sub(percent_pattern, f' {PERCENT_TOKEN} ', text)
 
     # Runde Klammern
     text = text.replace('{', '(')
@@ -118,6 +113,9 @@ def full_text_cleaning(text):
     # Doppelpunkte formatieren
     text = text.replace(':', ': ')
 
+    # Nummern ersetzen
+    text = re.sub(r'\d*\.\d+%|\d+%', PERCENT_TOKEN, text)
+    text = re.sub(r'\d+', NUM_TOKEN, text)
     return text
 
 
@@ -137,8 +135,9 @@ def term_cleaning(text):
 
     for i, term in enumerate(splits):
         # Großgeschriebene Wörter klein machen
-        if len(term) >= 5 and term.isupper() and term not in special_tokens:
-            term = term.lower()
+        if len(term) >= 5 and term.isupper():
+            if not any(s in term for s in special_tokens):
+                term = term.lower()
 
         # Einzelne Punkte löschen
         if term == '.':
@@ -165,23 +164,6 @@ def term_cleaning(text):
         # Zu lange Elemente entfernen
         if len(term) > 45:
             continue
-
-        # Freie Zahlen Token
-        try:
-            int(term)
-            term = NUM_TOKEN
-        except ValueError:
-            pass
-
-        # Wertspannen Token
-        try:
-            nums = term.split('-')
-            if len(nums) == 2:
-                int(nums[0])
-                int(nums[1])
-                term = NUM_RANGE_TOKEN
-        except ValueError:
-            pass
 
         # Weitere URLs, die vorher noch nicht abgefangen wurden
         if '.com' in term:

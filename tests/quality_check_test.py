@@ -6,7 +6,7 @@ import sys
 from tqdm import tqdm
 
 from utils.beautiful import print_argument_texts
-from utils.reader import ArgumentIterator
+from utils.reader import ArgumentIterator, ArgumentCbowIterator
 from preprocessing.tools import clean_text, model_text
 
 ROOT_PATH = rootpath.detect()
@@ -42,16 +42,9 @@ STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
 
 #     return sub_args
 
-# short_args = 0
-# arg_count = 0
-for arg in ArgumentIterator(CSV_PATH, max_args=100):
-    # for term in arg.text.split():
-    print("-> ", model_text(arg.text), '\n')
-    # arg_count += 1
-    # if len(arg.text.split()) <= 25:
-    # short_args += 1
 
-    # print(f"Argumente Insgesamt: {arg_count}")
-    # print(f"Zu kurze Argumente: {short_args}")
-    # print(
-    # f"Prozentualer Anteil zu kurzer Argumente: {(short_args*100/arg_count):.2f}%")
+for arg in ArgumentCbowIterator(CSV_PATH, max_args=100):
+    print(' '.join(arg))
+
+# for arg in ArgumentIterator(CSV_PATH, max_args=100):
+    # print(arg.text)

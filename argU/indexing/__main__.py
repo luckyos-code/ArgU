@@ -14,7 +14,7 @@ CBOW_MODEL_PATH = os.path.join(RESOURCES_PATH, f'cbow.model')
 A2V_MODEL_PATH = os.path.join(RESOURCES_PATH, 'a2v.model')
 BM25_PATH = os.path.join(RESOURCES_PATH, 'bm25.model')
 
-first_n_args = 10000
+first_n_args = 100000
 train_cbow = True
 train_a2v = False
 train_bm25 = False
@@ -30,7 +30,7 @@ if train_cbow:
             max_args=first_n_args,
         ),
         store_path=CBOW_MODEL_PATH,
-        min_count=8,
+        min_count=6,
     )
 else:
     cbow.load(CBOW_MODEL_PATH)

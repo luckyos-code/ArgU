@@ -3,6 +3,7 @@ import numpy as np
 from preprocessing import tools
 from numpy import linalg as LA
 from sklearn.preprocessing import normalize
+from preprocessing.tools import model_text
 
 
 def read_csv(path, max_rows=-1):
@@ -147,6 +148,19 @@ class ArgumentTextIterator:
     def __iter__(self):
         for argument in read_arguments(self.path, self.max_args):
             yield argument.text.split()
+
+
+class ArgumentCbowIterator:
+    """Iterator für bestimmte Formatierung, umd as CBOW Modell
+        zu trainieren"""
+
+    def __init__(self, path, max_args=-1):
+        self.path = path
+        self.max_args = max_args
+
+    def __iter__(self):
+        for argument in read_arguments(self.path, self.max_args):
+            yield model_text(argument.text).split()
 
 
 class ArgumentIterator:
