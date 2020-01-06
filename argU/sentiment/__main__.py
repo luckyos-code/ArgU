@@ -27,7 +27,7 @@ def google_topics():
     google_run(topics, os.path.join(ROOT_PATH, 'argU/sentiment/topic_sentiments.csv'), os.path.join(ROOT_PATH, 'argU/sentiment/topic_log'), 'topics')
     
 def google_titles():
-    google_run(read_csv(TITLES_PATH, 100), os.path.join(ROOT_PATH, 'argU/sentiment/title_log'), 'titles')
+    google_run(read_csv(TITLES_PATH, 100), os.path.join(ROOT_PATH, 'argU/sentiment/title_sentiments.csv'), os.path.join(ROOT_PATH, 'argU/sentiment/title_log'), 'titles')
 
 if __name__ == "__main__":
     #print(read_csv_header(TOPICS_PATH)) # [0] is topic_id, [5] is query_string
@@ -40,4 +40,5 @@ if __name__ == "__main__":
     #titles = list(dict.fromkeys(titles))
     #print(len(titles))
     #google_topics()
+    google_titles()
     #nltk_titles()
