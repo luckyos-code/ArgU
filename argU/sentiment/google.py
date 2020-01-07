@@ -3,51 +3,106 @@ from google.cloud.language_v1 import enums
 import logging, csv, os, datetime
 
 
-def getQueryText(rows):
-    return " ".join(rows)
-
-
-def getTitleText(rows):
-    return 'There are some facts to what you said but most is speculation. However, you failed to address my other two points, and so the debate is won by default. 2. Religious minorities have flourished under Islam. Muslims are commanded to protect Jews and Christians (the People of the Book) and do them no harm. The Quran says in Sura 109, "To you, your religion. To me, mine." 3. Islam is intolerant of enslaving human beings. The religion eradicated the institution of slavery thanks to the principles set in motion by Muhammad, who was an abolitionist.'
+def run(content, mode, csvpath1, csvpath2):
     """
-    text = ''
-    for row in rows:
-        query_text = row [5] + '. '
-        text += query_text
-    return text[:-1] 
+    Analyzing Sentiment
     """
-
-
-def run(rows, csvpath, logpath, mode):
-    """
-    Analyzing Sentiment in a String
-
-    Args:
-      text_content The text content to analyze
-    """
-    if mode == "topics":
-        text_content = getQueryText(rows)
-    elif mode == "titles":
-        text_content = getTitleText(rows)
+    # get content
+    if mode == "queries":
+        text_content = content
+    elif mode == "argument":
+        doc, text_content = content[9], content[0]
 
     client = language_v1.LanguageServiceClient()
 
-    # text_content = 'I am so happy and joyful.'
-
-    # Available types: PLAIN_TEXT, HTML
+    # set options
     type_ = enums.Document.Type.PLAIN_TEXT
-
-    # Optional. If not specified, the language is automatically detected.
-    # For list of supported languages:
-    # https://cloud.google.com/natural-language/docs/languages
     language = "en"
     document = {"content": text_content, "type": type_, "language": language}
-
-    # Available values: NONE, UTF8, UTF16, UTF32
     encoding_type = enums.EncodingType.UTF8
 
     response = client.analyze_sentiment(document, encoding_type=encoding_type)
 
+    # csv
+    if mode == "queries":
+        # add queries to csv
+        with open(csvpath1, mode="w+", newline="") as sentiments_csv:
+            query_sentiment_writer = csv.writer(
+                sentiments_csv, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
+            )
+            if os.stat(csvpath1).st_size == 0:
+                query_sentiment_writer.writerow(
+                    ["qid", "text", "sentiment_score", "sentiment_magnitude"]
+                )
+            addition = ""
+            number = 1
+            for num, sentence in enumerate(response.sentences, start=1):
+                if num == 51:
+                    number = 1
+                    addition = "000"
+                if addition == "000" and number == 10:
+                    addition = "00"
+                if sentence.text.content[-1:] == ".":
+                    sentence.text.content = sentence.text.content[:-1]
+                query_sentiment_writer.writerow(
+                    [
+                        addition + str(number),
+                        sentence.text.content,
+                        "{0:.4f}".format(sentence.sentiment.score),
+                        "{0:.4f}".format(sentence.sentiment.magnitude),
+                    ]
+                )
+                number += 1
+    elif mode == "argument":
+        # add argument to csv
+        with open(csvpath1, mode="a+", newline="") as argument_sentiments_csv:
+            argument_sentiment_writer = csv.writer(
+                argument_sentiments_csv,
+                delimiter=",",
+                quotechar='"',
+                quoting=csv.QUOTE_MINIMAL,
+            )
+            if os.stat(csvpath1).st_size == 0:
+                argument_sentiment_writer.writerow(
+                    ["doc", "sentiment_score", "sentiment_magnitude"]
+                )
+            argument_sentiment_writer.writerow(
+                [
+                    doc,
+                    "{0:.4f}".format(response.document_sentiment.score),
+                    "{0:.4f}".format(response.document_sentiment.magnitude),
+                ]
+            )
+            # add sentences to csv
+            with open(csvpath2, mode="a+", newline="") as sentence_sentiments_csv:
+                sentence_sentiment_writer = csv.writer(
+                    sentence_sentiments_csv,
+                    delimiter=",",
+                    quotechar='"',
+                    quoting=csv.QUOTE_MINIMAL,
+                )
+                if os.stat(csvpath2).st_size == 0:
+                    sentence_sentiment_writer.writerow(
+                        [
+                            "doc",
+                            "num",
+                            "snippet",
+                            "sentiment_score",
+                            "sentiment_magnitude",
+                        ]
+                    )
+                for num, sentence in enumerate(response.sentences, start=1):
+                    sentence_sentiment_writer.writerow(
+                        [
+                            doc,
+                            num,
+                            sentence.text.content.split(" ", 1)[0],
+                            "{0:.4f}".format(sentence.sentiment.score),
+                            "{0:.4f}".format(sentence.sentiment.magnitude),
+                        ]
+                    )
+
+    """
     # print
     # logging.info(u"Document number: {}".format(num))
     print(u"Document sentiment score: {}".format(response.document_sentiment.score))
@@ -66,28 +121,9 @@ def run(rows, csvpath, logpath, mode):
         print(
             u"Sentence sentiment magnitude: {}\n".format(sentence.sentiment.magnitude)
         )
-    # csv
-    if mode == "topics":
-        text_content = getQueryText(rows)
-        with open(csvpath, mode="a+", newline="") as sentiments_csv:
-            sentiment_writer = csv.writer(
-                sentiments_csv, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
-            )
-            if os.stat(csvpath).st_size == 0:
-                sentiment_writer.writerow(
-                    ["num", "text", "sentiment_score", "sentiment_magnitude"]
-                )
-            for num, sentence in enumerate(response.sentences, start=1):
-                if sentence.text.content[-1:] == ".":
-                    sentence.text.content = sentence.text.content[:-1]
-                sentiment_writer.writerow(
-                    [
-                        num,
-                        sentence.text.content,
-                        sentence.sentiment.score,
-                        sentence.sentiment.magnitude,
-                    ]
-                )
+    """
+
+    """
     # log
     logging.basicConfig(
         level=logging.DEBUG, filename=logpath, filemode="a+", format="%(message)s"
@@ -114,3 +150,4 @@ def run(rows, csvpath, logpath, mode):
         logging.info(
             u"Sentence sentiment magnitude: {}\n".format(sentence.sentiment.magnitude)
         )
+    """
