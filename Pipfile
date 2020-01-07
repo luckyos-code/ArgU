@@ -88,7 +88,7 @@ Werkzeug = "==0.16.0"
 sklearn = "*"
 pandas = "*"
 matplotlib = "*"
-nltk = "==3.3"
+nltk = ">=3.4.5"
 sentence-splitter = "*"
 
 [requires]
