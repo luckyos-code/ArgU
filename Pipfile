@@ -4,7 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-black = "*"
 
 [packages]
 absl-py = "==0.8.1"
@@ -88,7 +87,7 @@ Werkzeug = "==0.16.0"
 sklearn = "*"
 pandas = "*"
 matplotlib = "*"
-nltk = ">=3.4.5"
+nltk = "==3.4.5"
 sentence-splitter = "*"
 
 [requires]
