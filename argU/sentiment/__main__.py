@@ -2,13 +2,14 @@ from sentiment.analysis import get_nltk_data, run as nltk_run
 from sentiment.google import run as google_run
 from utils.reader import read_csv, read_csv_header
 
-import os, rootpath, csv
+import os, rootpath, csv, timeit
 
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, "resources/")
 QUERIES_PATH = os.path.join(RESOURCES_PATH, "topics.csv")
 QUERIES_AUTOMATIC_PATH = os.path.join(RESOURCES_PATH, "topics-automatic.csv")
 ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "args-me.csv")
+CLEAN_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiment_args.csv")
 
 
 def nltk_queries():
@@ -36,7 +37,9 @@ def google_queries():
 
 
 def google_argument():
-    for argument in read_csv(ARGUMENTS_PATH, 3):
+    for num, argument in enumerate(read_csv(CLEAN_ARGUMENTS_PATH, 200), start=1):
+        if num <= 200:
+            continue
         google_run(
             argument,
             "argument",
@@ -45,17 +48,12 @@ def google_argument():
         )
 
 
+def google_test_argument(argument):
+    google_run(
+        argument, "test", "", "",
+    )
+
+
 if __name__ == "__main__":
-    # print(read_csv_header(QUERIES_PATH)) # [0] is query_id, [5] is query_string
-    # queryEntry = next(read_csv(QUERIES_PATH, 1))
-    # print(queryEntry[5])
-    # print(read_csv_header(ARGUMENTS_PATH)) # [2] is source_id, [8] is id, [5] is discussion_argument
-    # arguments = []
-    # for argumentEntry in read_csv(ARGUMENTS_PATH, 1):
-    #    print(argumentEntry[9])
-    #    arguments.append(argumentEntry[5])
-    # arguments = list(dict.fromkeys(arguments))
-    # print(len(arguments))
-    # google_queries()
-    # google_argument()
-    # nltk_arguments()
+    duration = timeit.timeit(google_argument, number=1)
+    print(duration)

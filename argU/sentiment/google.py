@@ -11,7 +11,10 @@ def run(content, mode, csvpath1, csvpath2):
     if mode == "queries":
         text_content = content
     elif mode == "argument":
-        doc, text_content = content[9], content[0]
+        # doc, text_content = content[9], content[0]
+        doc, text_content = content[0], content[2]
+    elif mode == "test":
+        text_content = content
 
     client = language_v1.LanguageServiceClient()
 
@@ -23,7 +26,6 @@ def run(content, mode, csvpath1, csvpath2):
 
     response = client.analyze_sentiment(document, encoding_type=encoding_type)
 
-    # csv
     if mode == "queries":
         # add queries to csv
         with open(csvpath1, mode="w+", newline="") as sentiments_csv:
@@ -101,27 +103,24 @@ def run(content, mode, csvpath1, csvpath2):
                             "{0:.4f}".format(sentence.sentiment.magnitude),
                         ]
                     )
-
-    """
-    # print
-    # logging.info(u"Document number: {}".format(num))
-    print(u"Document sentiment score: {}".format(response.document_sentiment.score))
-    print(
-        u"Document sentiment magnitude: {}\n".format(
-            response.document_sentiment.magnitude
-        )
-    )
-
-    for num, sentence in enumerate(response.sentences, start=1):
-        if sentence.text.content[-1:] == ".":
-            sentence.text.content = sentence.text.content[:-1]
-        print(u"Sentence number: {}".format(num))
-        print(u"Sentence text: {}".format(sentence.text.content))
-        print(u"Sentence sentiment score: {}".format(sentence.sentiment.score))
+    elif mode == "test":
+        # print for tests
+        print(u"Document sentiment score: {}".format(response.document_sentiment.score))
         print(
-            u"Sentence sentiment magnitude: {}\n".format(sentence.sentiment.magnitude)
+            u"Document sentiment magnitude: {}\n".format(
+                response.document_sentiment.magnitude
+            )
         )
-    """
+
+        for num, sentence in enumerate(response.sentences, start=1):
+            print(u"Sentence number: {}".format(num))
+            print(u"Sentence text: {}".format(sentence.text.content))
+            print(u"Sentence sentiment score: {}".format(sentence.sentiment.score))
+            print(
+                u"Sentence sentiment magnitude: {}\n".format(
+                    sentence.sentiment.magnitude
+                )
+            )
 
     """
     # log
@@ -131,7 +130,6 @@ def run(content, mode, csvpath1, csvpath2):
 
     logging.info(u"Date: {}\n".format(datetime.datetime.now()))
 
-    # logging.info(u"Document number: {}".format(num))
     logging.info(
         u"Document sentiment score: {}".format(response.document_sentiment.score)
     )
