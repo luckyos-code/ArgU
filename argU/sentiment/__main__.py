@@ -10,8 +10,12 @@ QUERIES_PATH = os.path.join(RESOURCES_PATH, "topics.csv")
 QUERIES_AUTOMATIC_PATH = os.path.join(RESOURCES_PATH, "topics-automatic.csv")
 ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "args-me.csv")
 CLEAN_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiment_args.csv")
-ARGUMENT_SENTIMENTS_PATH = os.path.join(ROOT_PATH, "argU/sentiment/argument_sentiments.csv")
-SENTENCE_SENTIMENTS_PATH = os.path.join(ROOT_PATH, "argU/sentiment/sentence_sentiments.csv")
+ARGUMENT_SENTIMENTS_PATH = os.path.join(
+    ROOT_PATH, "argU/sentiment/argument_sentiments.csv"
+)
+SENTENCE_SENTIMENTS_PATH = os.path.join(
+    ROOT_PATH, "argU/sentiment/sentence_sentiments.csv"
+)
 
 
 def nltk_queries():
@@ -44,74 +48,56 @@ def google_test_argument(argument):
         argument, "test", "", "",
     )
 
+
 def count_analyzed():
     count = 0
     for arg in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
         count += 1
     return count
 
+
 def find_duplicates():
+    print("\nrunning duplicate check")
     csv_args = []
+    duplicates = []
     for arg in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
         if arg[0] in csv_args:
-            print(arg[0])
+            duplicates.append(arg[0])
         else:
             csv_args.append(arg[0])
+    print(f"\nFound:\t {len(duplicates)}")
+    print(duplicates)
 
-#def compare_to_csv():
-    # test for all arguments analyzed
 
-def repair_error():
-    print('running repair mode')
-    limit = 37100
+# def compare_to_csv():
+# test for all arguments analyzed
+
+
+def check_missing():
+    print("\nrunning missing check")
+    limit = 50000
+    tasks = []
+    # get analyzed arguments
+    csv_args = []
+    for num, arg in enumerate(read_csv(ARGUMENT_SENTIMENTS_PATH, -1), start=1):
+        csv_args.append(arg[0])
+    # get arguments for analysis
+    for argument in read_csv(CLEAN_ARGUMENTS_PATH, limit):
+        # check if already in csv
+        if argument[0] not in csv_args:
+            # add new argument as async task
+            tasks.append(num)
+    # give some useful info
     count = count_analyzed()
-    while True:
-        t0 = time.time()
-        tasks = []
-        # get analyzed arguments
-        csv_args = []
-        for arg in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
-            csv_args.append(arg[0])
-        # get arguments for analysis
-        for argument in read_csv(CLEAN_ARGUMENTS_PATH, limit):
-            # check if already in csv
-            if argument[0] not in csv_args:
-                # add new argument as async task
-                tasks.append(
-                    google_run(
-                        argument,
-                        "argument",
-                        ARGUMENT_SENTIMENTS_PATH,
-                        SENTENCE_SENTIMENTS_PATH,
-                    )
-                )
-            if len(tasks) == 600:
-                break
-        # run async tasks
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.gather(*tasks))
-        # give some useful info
-        oldCount = count
-        count = count_analyzed()
-        failed = (len(tasks) + oldCount) - count
-        print(f'\nTasks:\t {len(tasks)}')
-        print(f'Failed:\t {failed}')
-        print(f'In CSV:\t {count}')
-        print(f'Time:\t {time.time() - t0:.2f}\n')
-        if failed > 0:
-            print('I failed you.. :(')
-            break
-        # wait a minute for 600 quota/min limit
-        if count < limit:
-            print('Waiting before new request...')
-            time.sleep(61)
-        else:
-            break
-    loop.close()
+    print(f"\nMissed:\t {len(tasks)}")
+    print(f"In CSV:\t {count}")
+    print(f"Should:\t {limit}")
+    print(tasks)
+
 
 def async_google_argument():
-    print('running standard mode')
-    limit = 50000
+    print("\nrunning analysis")
+    limit = 100000
     count = count_analyzed()
     while True:
         t0 = time.time()
@@ -138,16 +124,16 @@ def async_google_argument():
         oldCount = count
         count = count_analyzed()
         failed = (len(tasks) + oldCount) - count
-        print(f'\nTasks:\t {len(tasks)}')
-        print(f'Failed:\t {failed}')
-        print(f'In CSV:\t {count}')
-        print(f'Time:\t {time.time() - t0:.2f}\n')
+        print(f"\nTasks:\t {len(tasks)}")
+        print(f"Failed:\t {failed}")
+        print(f"In CSV:\t {count}")
+        print(f"Time:\t {time.time() - t0:.2f}\n")
         if failed > 0:
-            print('I failed you.. :(')
+            print("I failed you.. :(")
             break
-        # wait a minute for 600 quota/min limit
         if count < limit:
-            print('Waiting before new request...')
+            # wait a minute for 600 quota/min limit
+            print("Waiting before new request...")
             time.sleep(61)
         else:
             break
@@ -156,4 +142,3 @@ def async_google_argument():
 
 if __name__ == "__main__":
     async_google_argument()
-    

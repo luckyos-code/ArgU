@@ -8,6 +8,7 @@ import logging, csv, os, datetime, asyncio
 client = language_v1.LanguageServiceClient()
 _executor = ThreadPoolExecutor()
 
+
 async def run(content, mode, csvpath1, csvpath2):
     """
     Analyzing Sentiment
