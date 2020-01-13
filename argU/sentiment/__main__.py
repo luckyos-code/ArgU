@@ -44,12 +44,27 @@ def google_test_argument(argument):
         argument, "test", "", "",
     )
 
-
-def async_google_argument():
-    limit = 10000
+def count_analyzed():
     count = 0
-    for line in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
+    for arg in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
         count += 1
+    return count
+
+def find_duplicates():
+    csv_args = []
+    for arg in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
+        if arg[0] in csv_args:
+            print(arg[0])
+        else:
+            csv_args.append(arg[0])
+
+#def compare_to_csv():
+    # test for all arguments analyzed
+
+def repair_error():
+    print('running repair mode')
+    limit = 37100
+    count = count_analyzed()
     while True:
         t0 = time.time()
         tasks = []
@@ -76,17 +91,64 @@ def async_google_argument():
         loop = asyncio.get_event_loop()
         loop.run_until_complete(asyncio.gather(*tasks))
         # give some useful info
-        count = 0
-        for line in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
-            count += 1
+        oldCount = count
+        count = count_analyzed()
+        failed = (len(tasks) + oldCount) - count
         print(f'\nTasks:\t {len(tasks)}')
-        print(f'Failed:\t {(len(tasks) + len(csv_args)) - count}')
+        print(f'Failed:\t {failed}')
         print(f'In CSV:\t {count}')
-        print(f'Time:\t {time.time() - t0}\n')
-        # wait for 600 quota/min limit
+        print(f'Time:\t {time.time() - t0:.2f}\n')
+        if failed > 0:
+            print('I failed you.. :(')
+            break
+        # wait a minute for 600 quota/min limit
         if count < limit:
             print('Waiting before new request...')
-            time.sleep(60)
+            time.sleep(61)
+        else:
+            break
+    loop.close()
+
+def async_google_argument():
+    print('running standard mode')
+    limit = 50000
+    count = count_analyzed()
+    while True:
+        t0 = time.time()
+        tasks = []
+        # get arguments for analysis
+        for num, argument in enumerate(read_csv(CLEAN_ARGUMENTS_PATH, limit), start=1):
+            # ignore already analyzed
+            if num > count:
+                # add new argument as async task
+                tasks.append(
+                    google_run(
+                        argument,
+                        "argument",
+                        ARGUMENT_SENTIMENTS_PATH,
+                        SENTENCE_SENTIMENTS_PATH,
+                    )
+                )
+            if len(tasks) == 600:
+                break
+        # run async tasks
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.gather(*tasks))
+        # give some useful info
+        oldCount = count
+        count = count_analyzed()
+        failed = (len(tasks) + oldCount) - count
+        print(f'\nTasks:\t {len(tasks)}')
+        print(f'Failed:\t {failed}')
+        print(f'In CSV:\t {count}')
+        print(f'Time:\t {time.time() - t0:.2f}\n')
+        if failed > 0:
+            print('I failed you.. :(')
+            break
+        # wait a minute for 600 quota/min limit
+        if count < limit:
+            print('Waiting before new request...')
+            time.sleep(61)
         else:
             break
     loop.close()
@@ -94,3 +156,4 @@ def async_google_argument():
 
 if __name__ == "__main__":
     async_google_argument()
+    
