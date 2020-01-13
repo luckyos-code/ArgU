@@ -1,9 +1,13 @@
 from google.cloud import language_v1
 from google.cloud.language_v1 import enums
-import logging, csv, os, datetime
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+import logging, csv, os, datetime, asyncio
+
+_executor = ThreadPoolExecutor()
 
 
-def run(content, mode, csvpath1, csvpath2):
+async def run(content, mode, csvpath1, csvpath2):
     """
     Analyzing Sentiment
     """
@@ -14,7 +18,7 @@ def run(content, mode, csvpath1, csvpath2):
         # doc, text_content = content[9], content[0]
         doc, text_content = content[0], content[2]
     elif mode == "test":
-        text_content = content
+        doc, text_content = content[0], content[2]
 
     client = language_v1.LanguageServiceClient()
 
@@ -23,8 +27,11 @@ def run(content, mode, csvpath1, csvpath2):
     language = "en"
     document = {"content": text_content, "type": type_, "language": language}
     encoding_type = enums.EncodingType.UTF8
-
-    response = client.analyze_sentiment(document, encoding_type=encoding_type)
+    loop = asyncio.get_running_loop()
+    response = await loop.run_in_executor(
+        _executor,
+        partial(client.analyze_sentiment, document, encoding_type=encoding_type),
+    )
 
     if mode == "queries":
         # add queries to csv
@@ -105,6 +112,7 @@ def run(content, mode, csvpath1, csvpath2):
                     )
     elif mode == "test":
         # print for tests
+        print(u"Document ID: {}".format(doc))
         print(u"Document sentiment score: {}".format(response.document_sentiment.score))
         print(
             u"Document sentiment magnitude: {}\n".format(

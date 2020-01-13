@@ -2,7 +2,7 @@ from sentiment.analysis import get_nltk_data, run as nltk_run
 from sentiment.google import run as google_run
 from utils.reader import read_csv, read_csv_header
 
-import os, rootpath, csv, timeit
+import os, rootpath, csv, asyncio, time
 
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, "resources/")
@@ -36,24 +36,32 @@ def google_queries():
     )
 
 
-def google_argument():
-    for num, argument in enumerate(read_csv(CLEAN_ARGUMENTS_PATH, 200), start=1):
-        if num <= 200:
-            continue
-        google_run(
-            argument,
-            "argument",
-            os.path.join(ROOT_PATH, "argU/sentiment/argument_sentiments.csv"),
-            os.path.join(ROOT_PATH, "argU/sentiment/sentence_sentiments.csv"),
-        )
-
-
 def google_test_argument(argument):
+    # argument = [doc,stance,text]
     google_run(
         argument, "test", "", "",
     )
 
 
+def async_google_argument():
+    tasks = []
+    for num, argument in enumerate(read_csv(CLEAN_ARGUMENTS_PATH, 700), start=1):
+        if num <= 700:
+            continue
+        tasks.append(
+            google_run(
+                argument,
+                "argument",
+                os.path.join(ROOT_PATH, "argU/sentiment/argument_sentiments.csv"),
+                os.path.join(ROOT_PATH, "argU/sentiment/sentence_sentiments.csv"),
+            )
+        )
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.gather(*tasks))
+    loop.close()
+
+
 if __name__ == "__main__":
-    duration = timeit.timeit(google_argument, number=1)
-    print(duration)
+    t0 = time.time()
+    async_google_argument()
+    print(time.time() - t0)
