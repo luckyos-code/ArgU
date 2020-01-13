@@ -10,6 +10,8 @@ QUERIES_PATH = os.path.join(RESOURCES_PATH, "topics.csv")
 QUERIES_AUTOMATIC_PATH = os.path.join(RESOURCES_PATH, "topics-automatic.csv")
 ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "args-me.csv")
 CLEAN_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiment_args.csv")
+ARGUMENT_SENTIMENTS_PATH = os.path.join(ROOT_PATH, "argU/sentiment/argument_sentiments.csv")
+SENTENCE_SENTIMENTS_PATH = os.path.join(ROOT_PATH, "argU/sentiment/sentence_sentiments.csv")
 
 
 def nltk_queries():
@@ -44,24 +46,51 @@ def google_test_argument(argument):
 
 
 def async_google_argument():
-    tasks = []
-    for num, argument in enumerate(read_csv(CLEAN_ARGUMENTS_PATH, 700), start=1):
-        if num <= 700:
-            continue
-        tasks.append(
-            google_run(
-                argument,
-                "argument",
-                os.path.join(ROOT_PATH, "argU/sentiment/argument_sentiments.csv"),
-                os.path.join(ROOT_PATH, "argU/sentiment/sentence_sentiments.csv"),
-            )
-        )
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.gather(*tasks))
+    limit = 10000
+    count = 0
+    for line in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
+        count += 1
+    while True:
+        t0 = time.time()
+        tasks = []
+        # get analyzed arguments
+        csv_args = []
+        for arg in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
+            csv_args.append(arg[0])
+        # get arguments for analysis
+        for argument in read_csv(CLEAN_ARGUMENTS_PATH, limit):
+            # check if already in csv
+            if argument[0] not in csv_args:
+                # add new argument as async task
+                tasks.append(
+                    google_run(
+                        argument,
+                        "argument",
+                        ARGUMENT_SENTIMENTS_PATH,
+                        SENTENCE_SENTIMENTS_PATH,
+                    )
+                )
+            if len(tasks) == 600:
+                break
+        # run async tasks
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.gather(*tasks))
+        # give some useful info
+        count = 0
+        for line in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
+            count += 1
+        print(f'\nTasks:\t {len(tasks)}')
+        print(f'Failed:\t {(len(tasks) + len(csv_args)) - count}')
+        print(f'In CSV:\t {count}')
+        print(f'Time:\t {time.time() - t0}\n')
+        # wait for 600 quota/min limit
+        if count < limit:
+            print('Waiting before new request...')
+            time.sleep(60)
+        else:
+            break
     loop.close()
 
 
 if __name__ == "__main__":
-    t0 = time.time()
     async_google_argument()
-    print(time.time() - t0)
