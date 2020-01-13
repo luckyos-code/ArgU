@@ -63,13 +63,13 @@ def find_duplicates():
             duplicates.append(arg[0])
         else:
             csv_args.append(arg[0])
-    print(f"\nFound:\t {len(duplicates)}")
-    print(duplicates)
+    print(f"Found:\t {len(duplicates)}")
+    if len(duplicates) > 0:
+        print(duplicates)
 
 
-def check_missing():
+def check_missing(limit):
     print("\nrunning missing check")
-    limit = 50000
     tasks = []
     # get analyzed arguments
     csv_args = []
@@ -83,26 +83,27 @@ def check_missing():
             tasks.append(num)
     # give some useful info
     count = count_analyzed()
-    print(f"\nMissed:\t {len(tasks)}")
+    print(f"Missed:\t {len(tasks)}")
     print(f"In CSV:\t {count}")
     print(f"Should:\t {limit}")
-    print(tasks)
+    if len(tasks) > 0:
+        print(tasks)
 
 
 # def compare_to_csv():
 # test for all arguments analyzed
 
 
-def run_checks():
+def run_checks(limit):
     find_duplicates()
-    check_missing()
+    check_missing(limit)
 
 
-def async_google_argument():
+def async_google_argument(limit):
     print("\nrunning analysis")
-    limit = 100000
+    loop = asyncio.get_event_loop()
     count = count_analyzed()
-    while True:
+    while count < limit:
         t0 = time.time()
         tasks = []
         # get arguments for analysis
@@ -121,7 +122,6 @@ def async_google_argument():
             if len(tasks) == 600:
                 break
         # run async tasks
-        loop = asyncio.get_event_loop()
         loop.run_until_complete(asyncio.gather(*tasks))
         # give some useful info
         oldCount = count
@@ -138,11 +138,11 @@ def async_google_argument():
             # wait a minute for 600 quota/min limit
             print("Waiting before new request...")
             time.sleep(62)
-        else:
-            break
+    print("Done, limit reached.")
     loop.close()
 
 
 if __name__ == "__main__":
-    async_google_argument()
-    run_checks()
+    limit = 150000
+    async_google_argument(limit)
+    run_checks(limit)
