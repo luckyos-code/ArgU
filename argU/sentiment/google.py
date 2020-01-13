@@ -4,8 +4,9 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 import logging, csv, os, datetime, asyncio
 
+# define only once
+client = language_v1.LanguageServiceClient()
 _executor = ThreadPoolExecutor()
-
 
 async def run(content, mode, csvpath1, csvpath2):
     """
@@ -20,13 +21,13 @@ async def run(content, mode, csvpath1, csvpath2):
     elif mode == "test":
         doc, text_content = content[0], content[2]
 
-    client = language_v1.LanguageServiceClient()
-
     # set options
     type_ = enums.Document.Type.PLAIN_TEXT
     language = "en"
     document = {"content": text_content, "type": type_, "language": language}
     encoding_type = enums.EncodingType.UTF8
+
+    # make analysis async
     loop = asyncio.get_running_loop()
     response = await loop.run_in_executor(
         _executor,
