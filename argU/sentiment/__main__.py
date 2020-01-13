@@ -1,4 +1,4 @@
-from sentiment.analysis import get_nltk_data, run as nltk_run
+from sentiment.nltk import get_nltk_data, run as nltk_run
 from sentiment.google import run as google_run
 from utils.reader import read_csv, read_csv_header
 
@@ -11,11 +11,12 @@ QUERIES_AUTOMATIC_PATH = os.path.join(RESOURCES_PATH, "topics-automatic.csv")
 ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "args-me.csv")
 CLEAN_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiment_args.csv")
 ARGUMENT_SENTIMENTS_PATH = os.path.join(
-    ROOT_PATH, "argU/sentiment/argument_sentiments.csv"
+    RESOURCES_PATH, "sentiments/argument_sentiments.csv"
 )
 SENTENCE_SENTIMENTS_PATH = os.path.join(
-    ROOT_PATH, "argU/sentiment/sentence_sentiments.csv"
+    RESOURCES_PATH, "sentiments/sentence_sentiments.csv"
 )
+QUERY_SENTIMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiments/query_sentiments.csv")
 
 
 def nltk_queries():
@@ -35,10 +36,7 @@ def google_queries():
     for row in read_csv(QUERIES_PATH, max_rows=-1):
         queries.append(row[5] + ".")
     google_run(
-        " ".join(queries),
-        "queries",
-        os.path.join(ROOT_PATH, "argU/sentiment/query_sentiments.csv"),
-        "",
+        " ".join(queries), "queries", QUERY_SENTIMENTS_PATH, "",
     )
 
 
@@ -69,10 +67,6 @@ def find_duplicates():
     print(duplicates)
 
 
-# def compare_to_csv():
-# test for all arguments analyzed
-
-
 def check_missing():
     print("\nrunning missing check")
     limit = 50000
@@ -93,6 +87,15 @@ def check_missing():
     print(f"In CSV:\t {count}")
     print(f"Should:\t {limit}")
     print(tasks)
+
+
+# def compare_to_csv():
+# test for all arguments analyzed
+
+
+def run_checks():
+    find_duplicates()
+    check_missing()
 
 
 def async_google_argument():
@@ -134,7 +137,7 @@ def async_google_argument():
         if count < limit:
             # wait a minute for 600 quota/min limit
             print("Waiting before new request...")
-            time.sleep(61)
+            time.sleep(62)
         else:
             break
     loop.close()
@@ -142,3 +145,4 @@ def async_google_argument():
 
 if __name__ == "__main__":
     async_google_argument()
+    run_checks()
