@@ -110,3 +110,8 @@ Argumente die weniger als 25 Terme haben scheinen sinnlos zu sein! Man sollte si
 * I think the title of the debate speaks for itself. Good luck to Masterful/What50, you'll need it cunt.
 * True. Although you don't need to leave, you could try logging on while sober and see how that works out for you?
 * Ohhh Masterful - I showed you my dick. Answer me!
+
+
+BM25: Model_texts
+CBOW: Model_texts
+A2V: Model_texts -> Jedes Word sucht Embedding aus CBOW

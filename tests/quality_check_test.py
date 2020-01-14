@@ -43,8 +43,13 @@ STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
 #     return sub_args
 
 
-for arg in ArgumentCbowIterator(CSV_PATH, max_args=100):
-    print(' '.join(arg))
+# for arg in ArgumentCbowIterator(CSV_PATH, max_args=100):
+# print(' '.join(arg))
 
-# for arg in ArgumentIterator(CSV_PATH, max_args=100):
-    # print(arg.text)
+for i, arg in enumerate(ArgumentIterator(CSV_PATH, max_args=10)):
+    print(f'{i}.1 -> ', arg.text_raw)
+    print()
+    print(f'{i}.2 -> ', arg.text)
+    print()
+    print(f'{i}.3 -> ', model_text(arg.text))
+    print('\n', '=' * 20, '\n')
