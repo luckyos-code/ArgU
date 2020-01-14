@@ -53,9 +53,10 @@ def count_analyzed():
         count += 1
     return count
 
+
 def count_failed():
     count = 0
-    for arg in read_csv('../resources/sentiments/failed.csv', -1):
+    for arg in read_csv("../resources/sentiments/failed.csv", -1):
         count += 1
     return count
 
@@ -93,11 +94,13 @@ def check_missing(limit):
     if len(tasks) > 0:
         print(tasks)
 
+
 def get_csv_args():
     csv_args = []
     for num, arg in enumerate(read_csv(ARGUMENT_SENTIMENTS_PATH, -1), start=1):
         csv_args.append(arg[0])
     return csv_args
+
 
 # def compare_to_csv():
 # test for all arguments analyzed
@@ -107,12 +110,12 @@ def run_checks(limit):
     find_duplicates()
     check_missing(limit)
 
+
 def check_existing(argument, csv_args):
     if argument[0] in csv_args:
         return True
     else:
         return False
-
 
 
 def async_google_argument(limit):
@@ -123,7 +126,7 @@ def async_google_argument(limit):
     failCount = 0
     dummyCount = 0
     # if needed for fix
-    #csv_args = get_csv_args()
+    # csv_args = get_csv_args()
     while count < limit:
         t0 = time.time()
         tasks = []
@@ -133,7 +136,7 @@ def async_google_argument(limit):
             # ignore already analyzed
             if num > count:
                 # if needed for fix
-                #if check_existing(argument, csv_args) is True:
+                # if check_existing(argument, csv_args) is True:
                 #    continue
                 # at least 24 words in argument
                 if len(argument[2].split()) > 24:
@@ -150,7 +153,9 @@ def async_google_argument(limit):
                     )
                 # dummy in csv
                 else:
-                    with open(ARGUMENT_SENTIMENTS_PATH, mode="a+", newline="") as argument_sentiments_csv:
+                    with open(
+                        ARGUMENT_SENTIMENTS_PATH, mode="a+", newline=""
+                    ) as argument_sentiments_csv:
                         argument_sentiment_writer = csv.writer(
                             argument_sentiments_csv,
                             delimiter=",",
@@ -162,11 +167,7 @@ def async_google_argument(limit):
                                 ["doc", "sentiment_score", "sentiment_magnitude"]
                             )
                         argument_sentiment_writer.writerow(
-                            [
-                                argument[0],
-                                'YYY',
-                                'too long',
-                            ]
+                            [argument[0], "YYY", "too long",]
                         )
                     dummyCount += 1
             if len(tasks) == 600:
@@ -178,7 +179,7 @@ def async_google_argument(limit):
         count = count_analyzed()
         oldcountFailed = countFailed
         countFailed = count_failed()
-        failed = (countFailed - oldcountFailed)
+        failed = countFailed - oldcountFailed
         print(f"\nTasks:\t {len(tasks)}")
         print(f"Failed:\t {failed}")
         print(f"Dummy:\t {dummyCount - olddummyCount}")
@@ -191,8 +192,8 @@ def async_google_argument(limit):
             print("Waiting before new request...")
             time.sleep(62)
     print("Done, limit reached.")
-    print(f'Fails: {failCount}')
-    print(f'Dummy: {dummyCount}')
+    print(f"Fails: {failCount}")
+    print(f"Dummy: {dummyCount}")
     loop.close()
 
 

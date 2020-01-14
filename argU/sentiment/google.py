@@ -38,21 +38,15 @@ async def run(content, mode, csvpath1, csvpath2):
         )
     except Exception as err:
         # put into failed.csv for later
-        with open('../resources/sentiments/failed.csv', mode="a+", newline="") as failed:
+        with open(
+            "../resources/sentiments/failed.csv", mode="a+", newline=""
+        ) as failed:
             failed_writer = csv.writer(
                 failed, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
             )
-            if os.stat('../resources/sentiments/failed.csv').st_size == 0:
-                failed_writer.writerow(
-                    ["qid", "text", "err"]
-                )
-            failed_writer.writerow(
-                [
-                    doc,
-                    text_content,
-                    str(err)
-                ]
-            )
+            if os.stat("../resources/sentiments/failed.csv").st_size == 0:
+                failed_writer.writerow(["qid", "text", "err"])
+            failed_writer.writerow([doc, text_content, str(err)])
         # dummy argument to csv
         with open(csvpath1, mode="a+", newline="") as argument_sentiments_csv:
             argument_sentiment_writer = csv.writer(
@@ -66,13 +60,9 @@ async def run(content, mode, csvpath1, csvpath2):
                     ["doc", "sentiment_score", "sentiment_magnitude"]
                 )
             argument_sentiment_writer.writerow(
-                [
-                    doc,
-                    'XXX',
-                    'failed',
-                ]
+                [doc, "XXX", "failed",]
             )
-        
+
     if mode == "queries" and response is not False:
         # add queries to csv
         with open(csvpath1, mode="w+", newline="") as sentiments_csv:
