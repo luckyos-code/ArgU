@@ -28,8 +28,18 @@ def tokenizing_q(query: str):
             for syn in wordnet.synsets(i):
                 for l in syn.lemmas():
                     synonyms.append(l.name())
-                    if l.antonyms():
-                        antonyms.append(l.antonyms()[0].name())
+                    # if l.antonyms():
+                    #     antonyms.append(l.antonyms()[0].name())
+            for s, syno in enumerate(synonyms):
+                syno.replace("_"," ")
+                synonyms[s]= syno
+            for s, syno in enumerate(synonyms):
+                for j,syno2 in enumerate(synonyms):
+                    if j > s:
+                        if syno2 == syno:
+                            synonyms[j] = ""
+            synonyms = [x for x in synonyms if not x == ""]
+
             tokens['token'] = i
             tokens['pos_tag'] = pos_list[0][1]
             tokens['synonyms'] = synonyms
