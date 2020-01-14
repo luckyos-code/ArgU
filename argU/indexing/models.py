@@ -1,18 +1,18 @@
-from utils.reader import read_arguments
-from collections import defaultdict, Counter
-from rank_bm25 import BM25Okapi
+
+import json
+import time
+from tqdm import tqdm
+
 import numpy as np
-import pickle
 from numpy import linalg as LA
-from utils.reader import ArgumentTextIterator, ArgumentIterator
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
 from gensim.models import KeyedVectors
-from time import time
 from scipy.spatial import distance
-from tqdm import tqdm
-from scipy import spatial
+from sklearn import preprocessing
 
+from utils.reader import Argument
+from indexing.rank_bm25 import BM25Okapi
 
 class EpochLogger(CallbackAny2Vec):
     '''Callback to log information about training'''
@@ -54,86 +54,135 @@ class CBOW:
         )
 
     def store(self, path):
-        assert self.model is not None
+        tick = time.time()
+
         self.model.save(path)
-        print("Modell gespeichert...")
 
-    def load(self, path):
-        self.model = Word2Vec.load(path)
+        time_spent = time.time() - tick
+        print(f"CBOW: Benötigte zeit zum Speichern: {time_spent:.2f}s")
 
-
-class BM25Manager:
-    """Index zur Bestimmung relevanter Argumente für eine Query"""
-
-    def __init__(self):
-        self.index = None
-        self.argument_texts = []
-        self.argument_ids = []
-
-    def build(self, path, max_args=-1):
-        """Erstelle einen neuen BM25Kapi
-
-        Args:
-            path (str): CSV path
-            max_args (int): Menge der Argumente. -1 = alle
-        """
-
-        for argument in ArgumentIterator(path, max_args):
-            self.argument_texts.append(argument.text.split())
-            self.argument_ids.append(argument.id)
-
-        self.index = BM25Okapi(self.argument_texts)
 
     @staticmethod
     def load(path):
-        """Falls es einen Index gibt, der gespeichert wurde, kann dieser hier
-        geladen werden. Dabei wird `bm25_index` definiert.
+        tick = time.time()
+
+        cbow = CBOW()
+        cbow.model = Word2Vec.load(path)
+
+        time_spent = time.time() - tick
+        print(f"CBOW: Benötigte zeit zum Laden: {time_spent:.2f}s")
+
+        return cbow
+
+
+class BM25Manager:
+    """BM25Kapi Manager
+    
+    Args:
+        index (:obj:`BM25Kapi`): BM25 Algorithmus
+        argument_texts (:obj:`list` of :obj:`str`): Argument Texte aus der Trainings-Datei.
+        argument_ids (:obj:`list` of :obj:`str): Argument IDs. Indizes für die Texte und IDs sind identisch.
+    """
+
+    def __init__(self):
+        self.index = None
+
+    def build(self, iterable_args):
+        """Erstelle ein neues BM25Kapi Objekt. Texte und IDs werden im Manager zusätzlich gespeichert.
 
         Args:
-            path (str): Pfad zur Datei
+            iterable_args (:obj:`TrainCSVIterator`): Iterator für vorverarbeitete Argumente
         """
 
-        with open(path, 'rb') as f_in:
-            return pickle.load(f_in)
+        self.index = BM25Okapi(iterable_args)
+
+    def norm_scores(self, query):
+        """Bestimme die normalisierten Scores für alle Argumente
+
+        Args:
+            query (:obj:`str`): Eingabe
+
+        Returns:
+            dict (:obj:`str`: float): Argument IDs und dazugehörige 
+                normalisierte und absteigend sortierte Scores.
+        """
+
+        query_splitted = query.split()
+        scores = self.index.get_scores(query_splitted)
+        scores = preprocessing.normalize([scores])
+
+        scores = {arg: score for (arg, score) in zip(self.index.arg_ids, scores[0])}
+        scores = {k: v for k, v in sorted(scores.items(), key=lambda item: item[1], reverse=True)}
+
+        return scores
+
+    @staticmethod
+    def load(path):
+        """Lade einen als JSON gespeicherten `BM25Manager`
+
+        Args:
+            path (:obj:`str`): Dateipfad
+        """
+
+        with open(path, 'r') as f_in:
+
+            tick = time.time()
+            data = json.load(f_in)
+
+            bm25_manager = BM25Manager() 
+
+            bm25_manager.index = BM25Okapi()
+            bm25_manager.index.idf = data['idf']
+            bm25_manager.index.corpus_size = data['corpus_size']
+            bm25_manager.index.doc_len = data['doc_len']
+            bm25_manager.index.doc_freqs = data['doc_freqs']
+            bm25_manager.index.k1 = data['k1']
+            bm25_manager.index.b = data['b']
+            bm25_manager.index.avgdl = data['avgdl']
+            bm25_manager.index.arg_ids = data['arg_ids']
+
+            time_spent = time.time() - tick
+            print(f"BM25: Benötigte zeit zum Laden von {len(bm25_manager.index.arg_ids)} Argumenten: {time_spent:.2f}s")
+
+            return bm25_manager
 
     def store(self, path):
-        """Speichere den Index, falls dieser existiert, in eine Datei
+        """Speichere diesen `BM25Manager`
 
         Args:
             path (str): Dateipfad
         """
 
-        assert self.index is not None
-        with open(path, 'wb') as f_out:
-            pickle.dump(self, f_out)
+        tick = time.time()
+        payload = {
+            'idf': self.index.idf,
+            'corpus_size': self.index.corpus_size,
+            'doc_len': self.index.doc_len,
+            'doc_freqs': self.index.doc_freqs,
+            'k1': self.index.k1,
+            'b': self.index.b,
+            'avgdl': self.index.avgdl,
+            'arg_ids': self.index.arg_ids
+        }
 
-    def get_top_n_ids(self, query, top_n=10):
-        """Suche für die gegebene Query die top `top_n` Ergebnisse
+        with open(path, 'w') as f_out:
+            json.dump(payload, f_out)
 
-        Args:
-            query (str): Anfrage
-            top_n (int): Die Top N Ergebnisse
+        time_spent = time.time() - tick
+        print(f"BM25: Benötigte zeit zum Speichern von {len(self.index.arg_ids)} Argumenten: {time_spent:.2f}s")
 
-        Returns:
-            list: Gefundene Indizes sortiert nach Relevanz
-        """
+    # def get_top_n_ids(self, query, top_n=10):
+    #     """Suche für die gegebene Query die besten `top_n` Ergebnisse
 
-        assert self.index is not None
-        return self.index.get_top_n(query.split(), self.argument_ids, n=top_n)
+    #     Args:
+    #         query (:obj:`str`): Anfrage
+    #         top_n (int): Die Top N Ergebnisse
 
-    def norm_scores(self, query):
-        """Bestimme die Scores bezüglich aller Argumente
+    #     Returns:
+    #         list: Gefundene Indizes sortiert nach Relevanz
+    #     """
 
-        Args:
-            query (str): Eingabe
-
-        Returns:
-            dict: Argument IDs und dazugehörige, normalisierte Scores
-        """
-
-        scores = self.index.get_scores(query.split())
-        scores = scores / LA.norm(scores)
-        return {arg: score for (arg, score) in zip(self.argument_ids, scores)}
+    #     return self.index.get_top_n(query.split(), self.argument_ids, n=top_n)
 
 
 class DualEmbedding:
@@ -181,27 +230,23 @@ class DualEmbedding:
 
 
 class Argument2Vec:
-    def __init__(self, w2v_model, arguments_path):
-        self.w2v_model = w2v_model
-        self.arguments_path = arguments_path
-
+    def __init__(self, cbow):
+        self.cbow = cbow
         self.av = dict()
 
-    def _is_valid(self, argument):
-        valid = len(argument.text) > 5
-        return valid
+    def build(self, train_csv_iterator):
+        if self.cbow is None:
+            print('Model kann nicht erstellt werden...')
+            return False
 
-    def build(self, max_args=-1):
-        vector_size = self.w2v_model.vector_size
+        vector_size = self.cbow.model.vector_size
 
-        for argument in tqdm(ArgumentIterator(
-            self.arguments_path, max_args)
-        ):
-            if self._is_valid(argument):
-                arg_emb, unk_words = argument.get_vec(
-                    self.w2v_model, vector_size
-                )
-                self.av[argument.id] = (arg_emb, unk_words)
+        for row in tqdm(train_csv_iterator):
+            arg_id = row[0]
+            arg_text = row[1]
+
+            arg_emb, unk = Argument.to_vec(arg_text, self.cbow.model, vector_size)
+            self.av[arg_id] = (arg_emb, unk)
 
     # def most_similar(self, query, topn=5):
     #     query_embeddings = [self.w2v_model.wv[word] for word in query.split()]
@@ -239,8 +284,21 @@ class Argument2Vec:
             path (str): Pfad zur Datei
         """
 
-        with open(path, 'rb') as f_in:
-            return pickle.load(f_in)
+        tick = time.time()
+
+        a2v = Argument2Vec(None)
+        with open(path, 'r') as f_in:
+            a2v.av = json.load(f_in)
+            for key, (v1, v2) in a2v.av.items():
+                if v1 is None:
+                    print(key, v1, v2)
+                else:
+                    a2v.av[key] = (np.asarray(v1), v2)
+        
+        time_spent = time.time() - tick
+        print(f"A2V: Benötigte zeit zum Laden von {len(a2v.av)} Argumenten: {time_spent:.2f}s")
+
+        return a2v
 
     def store(self, path):
         """Speichere den Index, falls dieser existiert, in eine Datei
@@ -249,9 +307,19 @@ class Argument2Vec:
             path (str): Dateipfad
         """
 
-        with open(path, 'wb') as f_out:
-            pickle.dump(self, f_out)
+        tick = time.time()
 
+        for key, (v1, v2) in self.av.items():
+            try:
+                self.av[key] = (v1.tolist(), v2)
+            except Exception as e:
+                print(key, v1, v2)
+                print(e)
+        with open(path, 'w') as f_out:
+            json.dump(self.av, f_out)
+        
+        time_spent = time.time() - tick
+        print(f"A2V: Benötigte zeit zum Speichern von {len(self.av)} Argumenten: {time_spent:.2f}s")
 
 class MixtureModel:
     def __init__(self, a2v, bm25_manager):

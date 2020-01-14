@@ -3,31 +3,6 @@ import os
 import rootpath
 
 
-@DeprecationWarning
-def denoise(text):
-    """Entferne Rauschen aus einem Text
-
-    1. Lower Case
-    2. Alles in eckigen Klammern wird entfernt
-    3. Entferne Web-Adressen
-    4. Entferne Sonderzeichen außer Apostrophe
-
-    Returns:
-        list mit den einzelnen, aufeinanderfolgenden Wörtern
-    """
-
-    denoised_text = []
-
-    text = re.sub(r'\[[^]]*\]', '', text)
-    for word in text.split():
-        if not any(w in word for w in ['www.', '.com', 'com/']):
-            word = re.sub(r'[^\w\s]', '', word).strip()
-            word_split = word.split()
-            if word != '':
-                denoised_text.append(word)
-    return denoised_text
-
-
 URL_TOKEN = '<URL>'
 NUM_TOKEN = '<NUM>'
 PERCENT_TOKEN = '<PERCENT>'
@@ -44,28 +19,21 @@ RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
 
 
-def full_text_cleaning(text):
-    """Text wird als ein String betrachtet und gesäubert
-        Das ist der erste Schritt.
-
-    Args:
-        text (str): Argument Text raw
-
-    Returns:
-        str: gesäuberten Text
+def url_cleaning(text):
+    """URLs säubern und durch `URL_TOKEN` ersetzen.
+        Nicht alle URLs werden gefunden! (s. Schritt 2)
     """
 
-    # URLs säubern und durch `URL_TOKEN` ersetzen.
-    # Nicht alle URLs werden gefunden! (s. Schritt 2)
     text = text.replace('http://', ' http://')
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     found_urls = re.findall(url_regex, text)
     text = re.sub(url_regex, f' {URL_TOKEN} ', text)
+    return text
 
-    # Kommas splitten für bessere Verarbeitung von Nummern
-    text = text.replace(', ', ' , ')
+def comma_separation_cleaning(text):
+    return text.replace(', ', ' , ')
 
-    # Entferne Sonderzeichen die zu oft hintereinander stehen
+def multi_special_char_cleaning(text):
     text = re.sub(r'([a-zA-Z])\.{2,}', r"\1. ", text)
     text = re.sub(r'\"{2,}', '"', text)
     text = re.sub(r'\.{3,}', " ... ", text)
@@ -74,30 +42,30 @@ def full_text_cleaning(text):
     text = re.sub(r'(\?\!|\!\?)+', '?!', text)
     text = re.sub(r'[~#§&@]', '', text)
     text = text.replace('=', ' ')
+    return text
 
-    # Ersetze Buchstaben, die mehr als 2 mal hintereinander stehen durch einen
-    text = re.sub(
-        r'([a-zA-Z])\1{3,}',
-        r'\1',
-        text
-    )
+def multi_letter_delete(text):
+    return re.sub(r'([a-zA-Z])\1{3,}', r'\1', text)
 
-    # Entferne eckige Klammern und Inhalt
+def square_bracket_cleaning(text):
     barcket_pattern = r'\[.*?\]'
     found_brackets = re.findall(barcket_pattern, text)
     text = re.sub(barcket_pattern, '', text)
+    return text
 
-    # Runde Klammern
+def parenthesis_cleaning(text):
     text = text.replace('{', '(')
     text = text.replace('}', ')')
-
     text = text.replace(')', ') ')
     text = text.replace('(', ' (')
+    return text
 
-    # Unterargumente finden und trennen: 1) ... 1. ... 1- ...
+def sub_args_cleaning(text):
     text = re.sub(r'([1-9]+[0-9]*[-][A-Za-z])', r' \1 ', text)
     text = re.sub(r'([1-9]+[0-9]*[).])', r' \1 ', text)
+    return text
 
+def simple_special_char_changes(text):
     # Bindestriche
     text = re.sub(r'\-{2,}', ' - ', text)
     text = re.sub(r'([a-zA-Z0-9]\-) ([a-zA-Z])', r'\1\2', text)
@@ -112,10 +80,34 @@ def full_text_cleaning(text):
 
     # Doppelpunkte formatieren
     text = text.replace(':', ': ')
+    return text
 
-    # Nummern ersetzen
+def number_cleaning(text):
     text = re.sub(r'\d*\.\d+%|\d+%', PERCENT_TOKEN, text)
     text = re.sub(r'\d+', NUM_TOKEN, text)
+    return text
+
+def full_text_cleaning(text):
+    """Text wird als ein String betrachtet und gesäubert
+        Das ist der erste Schritt.
+
+    Args:
+        text (str): Argument Text raw
+
+    Returns:
+        str: gesäuberten Text
+    """
+
+    text = url_cleaning(text)
+    text = comma_separation_cleaning(text)
+    text = multi_special_char_cleaning(text)
+    text = multi_letter_delete(text)
+    text = square_bracket_cleaning(text)
+    text = parenthesis_cleaning(text)
+    text = sub_args_cleaning(text)
+    text = simple_special_char_changes(text)
+    text = number_cleaning(text)
+    
     return text
 
 
@@ -201,15 +193,33 @@ def full_text_cleaning_end(text):
     return text
 
 
-def clean_text(text):
+def natural_language_clean(text):
     text = full_text_cleaning(text)
     text = term_cleaning(text)
     text = full_text_cleaning_end(text)
 
     return text
 
+def clean_text_simple(text):
+    text = url_cleaning(text)
+    text = comma_separation_cleaning(text)
+    text = multi_special_char_cleaning(text)
+    text = multi_letter_delete(text)
+    text = square_bracket_cleaning(text)
+    text = parenthesis_cleaning(text)
+    text = sub_args_cleaning(text)
+    text = simple_special_char_changes(text)
 
-def model_text(text):
+    text = term_cleaning(text)
+    text = full_text_cleaning_end(text)
+
+    text = text.replace(URL_TOKEN, ' ')
+    text = text.replace(INFO_TOKEN, ' ')
+    text = ' '.join(text.split()).strip()
+
+    return text
+
+def machine_model_clean(text):
     """Entferne noch mehr Sonderzeichen, um einen sauberen Text zu erzeugen.
         Damit können Wahrscheinlich keine Sätze mehr sauber getrennt werden!
 

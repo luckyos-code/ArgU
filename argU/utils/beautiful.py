@@ -11,32 +11,17 @@ def print_argument_texts(ids, path, print_all=False):
     """
     if print_all:
         for argument in FindArgumentIterator(path, ids):
-            print((
-                f"Length = {len(argument.text)}, "
-                f"Text = {' '.join(argument.text_raw.split())}\n\n"
-                f"Clean = {argument.text}\n"
-            ))
+            print(f"{argument.id}\n")
+            print(f"\t1. Raw -> {argument.text_raw}\n")
+            print(f"\t2. Clean -> {argument.text_nl}\n")
+            print(f"\t3. Model -> {argument.text_machine}")
+            print('\n', '=' * 40, '\n')
     else:
         for argument in FindArgumentIterator(path, ids):
             print((
-                f"Length = {len(argument.text)}, "
+                f"Length = {len(argument.text_nl)}, "
                 f"Text = {' '.join(argument.text_raw.split()[:25])} ...\n"
             ))
-
-
-# def print_debate_titles(ids, path):
-#     """Gib zu den gefundenen Debatten IDs die passenden Titel aus
-
-#     Args:
-#         ids (list): Debatten IDs
-#         path (str): Pfad zur CSV Datei mit den Debatten
-#     """
-#     for debate in FindDebateIterator(path, ids):
-#         print((
-#             f"Length = {len(debate.text)}, "
-#             f"Text = {' '.join(debate.text[:25])} ..."
-#         ))
-
 
 def print_embedding_examples(model, words):
     for word in words:

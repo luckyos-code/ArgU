@@ -39,4 +39,13 @@ bad_arguments = [
 
 check = ["a617b5f8-2019-04-18T12:37:07Z-00003-000"]
 
-print_argument_texts(check, CSV_PATH, print_all=True)
+biased = [
+    "ffd45b01-2019-04-18T18:54:19Z-00000-000",
+    "ffd45b01-2019-04-18T18:54:19Z-00001-000",
+    "ffd45b01-2019-04-18T18:54:19Z-00002-000",
+    "ffd45b01-2019-04-18T18:54:19Z-00005-000",
+    "7eec18b5-2019-04-18T17:32:15Z-00001-000",
+    "7eec18b5-2019-04-18T17:32:15Z-00003-000",
+]
+
+print_argument_texts(biased, CSV_PATH, print_all=True)
