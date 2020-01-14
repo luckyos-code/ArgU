@@ -85,11 +85,10 @@ def check_missing(limit):
         # check if already in csv
         if argument[0] not in csv_args:
             # add new argument as async task
-            tasks.append(num)
+            tasks.append(argument[0])
     # give some useful info
-    count = count_analyzed()
     print(f"Missed:\t {len(tasks)}")
-    print(f"In CSV:\t {count}")
+    print(f"In CSV:\t {len(csv_args)}")
     print(f"Should:\t {limit}")
     if len(tasks) > 0:
         print(tasks)
@@ -106,11 +105,6 @@ def get_csv_args():
 # test for all arguments analyzed
 
 
-def run_checks(limit):
-    find_duplicates()
-    check_missing(limit)
-
-
 def check_existing(argument, csv_args):
     if argument[0] in csv_args:
         return True
@@ -120,8 +114,10 @@ def check_existing(argument, csv_args):
 
 def async_google_argument(limit):
     print("\nrunning analysis")
+    t_start = time.time()
     loop = asyncio.get_event_loop()
     count = count_analyzed()
+    startCount = count
     countFailed = count_failed()
     failCount = 0
     dummyCount = 0
@@ -190,14 +186,17 @@ def async_google_argument(limit):
         if count < limit:
             # wait a minute for 600 quota/min limit
             print("Waiting before new request...")
-            time.sleep(62)
+            time.sleep(72)
     print("Done, limit reached.")
+    print(f"Added: {count - startCount}")
     print(f"Fails: {failCount}")
     print(f"Dummy: {dummyCount}")
+    print(f"Time: {time.time() - t_start:.2f}")
     loop.close()
 
 
 if __name__ == "__main__":
-    limit = 102000
+    limit = 150000
     async_google_argument(limit)
-    run_checks(limit)
+    find_duplicates()
+    check_missing(limit)
