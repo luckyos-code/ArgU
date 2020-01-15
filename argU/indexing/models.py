@@ -14,6 +14,7 @@ from sklearn import preprocessing
 from utils.reader import Argument
 from indexing.rank_bm25 import BM25Okapi
 
+
 class EpochLogger(CallbackAny2Vec):
     '''Callback to log information about training'''
 
@@ -61,9 +62,10 @@ class CBOW:
         time_spent = time.time() - tick
         print(f"CBOW: Benötigte zeit zum Speichern: {time_spent:.2f}s")
 
-
     @staticmethod
     def load(path):
+
+        print("Lade CBOW Modell...")
         tick = time.time()
 
         cbow = CBOW()
@@ -77,44 +79,46 @@ class CBOW:
 
 class BM25Manager:
     """BM25Kapi Manager
-    
+
     Args:
         index (:obj:`BM25Kapi`): BM25 Algorithmus
-        argument_texts (:obj:`list` of :obj:`str`): Argument Texte aus der Trainings-Datei.
-        argument_ids (:obj:`list` of :obj:`str): Argument IDs. Indizes für die Texte und IDs sind identisch.
     """
 
     def __init__(self):
         self.index = None
 
-    def build(self, iterable_args):
-        """Erstelle ein neues BM25Kapi Objekt. Texte und IDs werden im Manager zusätzlich gespeichert.
+    def build(self, train_csv_iterator):
+        """Erstelle ein neues BM25Kapi Objekt. Texte und IDs
+            werden im Manager zusätzlich gespeichert.
 
         Args:
-            iterable_args (:obj:`TrainCSVIterator`): Iterator für vorverarbeitete Argumente
+            train_csv_iterator (:obj:`TrainCSVIterator`): Iterator
+                für vorverarbeitete Argumente
         """
 
-        self.index = BM25Okapi(iterable_args)
+        self.index = BM25Okapi(train_csv_iterator)
 
-    def norm_scores(self, query):
-        """Bestimme die normalisierten Scores für alle Argumente
+    # def norm_scores(self, query):
+    #     """Bestimme die normalisierten Scores für alle Argumente
 
-        Args:
-            query (:obj:`str`): Eingabe
+    #     Args:
+    #         query (:obj:`str`): Eingabe
 
-        Returns:
-            dict (:obj:`str`: float): Argument IDs und dazugehörige 
-                normalisierte und absteigend sortierte Scores.
-        """
+    #     Returns:
+    #         dict (:obj:`str`: float): Argument IDs und dazugehörige
+    #             normalisierte und absteigend sortierte Scores.
+    #     """
 
-        query_splitted = query.split()
-        scores = self.index.get_scores(query_splitted)
-        scores = preprocessing.normalize([scores])
+    #     query_splitted = query.split()
+    #     scores = self.index.get_scores(query_splitted)
+    #     scores = preprocessing.normalize([scores])
 
-        scores = {arg: score for (arg, score) in zip(self.index.arg_ids, scores[0])}
-        scores = {k: v for k, v in sorted(scores.items(), key=lambda item: item[1], reverse=True)}
+    #     scores = {arg: score for (arg, score) in zip(
+    #         self.index.arg_ids, scores[0])}
+    #     scores = {k: v for k, v in sorted(
+    #         scores.items(), key=lambda item: item[1], reverse=True)}
 
-        return scores
+    #     return scores
 
     @staticmethod
     def load(path):
@@ -123,13 +127,15 @@ class BM25Manager:
         Args:
             path (:obj:`str`): Dateipfad
         """
+        
+        print("Lade BM25 Modell...")
 
         with open(path, 'r') as f_in:
 
             tick = time.time()
             data = json.load(f_in)
 
-            bm25_manager = BM25Manager() 
+            bm25_manager = BM25Manager()
 
             bm25_manager.index = BM25Okapi()
             bm25_manager.index.idf = data['idf']
@@ -142,7 +148,8 @@ class BM25Manager:
             bm25_manager.index.arg_ids = data['arg_ids']
 
             time_spent = time.time() - tick
-            print(f"BM25: Benötigte zeit zum Laden von {len(bm25_manager.index.arg_ids)} Argumenten: {time_spent:.2f}s")
+            print(
+                f"BM25: Benötigte zeit zum Laden von {len(bm25_manager.index.arg_ids)} Argumenten: {time_spent:.2f}s")
 
             return bm25_manager
 
@@ -169,7 +176,8 @@ class BM25Manager:
             json.dump(payload, f_out)
 
         time_spent = time.time() - tick
-        print(f"BM25: Benötigte zeit zum Speichern von {len(self.index.arg_ids)} Argumenten: {time_spent:.2f}s")
+        print(
+            f"BM25: Benötigte zeit zum Speichern von {len(self.index.arg_ids)} Argumenten: {time_spent:.2f}s")
 
     # def get_top_n_ids(self, query, top_n=10):
     #     """Suche für die gegebene Query die besten `top_n` Ergebnisse
@@ -218,13 +226,16 @@ class DualEmbedding:
         cos_sum = 0
 
         query_model = self.model_in if q_type == 'in' else self.model_out
-        query = query.split()
 
         for q_term in query:
-            cos_sum += 1 - distance.cosine(
-                np.transpose(query_model.wv[q_term]),
-                arg_emb,
-            )
+            try:
+                cos_sum += 1 - distance.cosine(
+                    np.transpose(query_model.wv[q_term]),
+                    arg_emb,
+                )
+            except KeyError as ke:
+                pass
+                # print(f'{q_term} -> kein Embedding')
 
         return norm_factor * cos_sum
 
@@ -245,7 +256,8 @@ class Argument2Vec:
             arg_id = row[0]
             arg_text = row[1]
 
-            arg_emb, unk = Argument.to_vec(arg_text, self.cbow.model, vector_size)
+            arg_emb, unk = Argument.to_vec(
+                arg_text, self.cbow.model, vector_size)
             self.av[arg_id] = (arg_emb, unk)
 
     # def most_similar(self, query, topn=5):
@@ -294,9 +306,10 @@ class Argument2Vec:
                     print(key, v1, v2)
                 else:
                     a2v.av[key] = (np.asarray(v1), v2)
-        
+
         time_spent = time.time() - tick
-        print(f"A2V: Benötigte zeit zum Laden von {len(a2v.av)} Argumenten: {time_spent:.2f}s")
+        print(
+            f"A2V: Benötigte zeit zum Laden von {len(a2v.av)} Argumenten: {time_spent:.2f}s")
 
         return a2v
 
@@ -317,9 +330,11 @@ class Argument2Vec:
                 print(e)
         with open(path, 'w') as f_out:
             json.dump(self.av, f_out)
-        
+
         time_spent = time.time() - tick
-        print(f"A2V: Benötigte zeit zum Speichern von {len(self.av)} Argumenten: {time_spent:.2f}s")
+        print(
+            f"A2V: Benötigte zeit zum Speichern von {len(self.av)} Argumenten: {time_spent:.2f}s")
+
 
 class MixtureModel:
     def __init__(self, a2v, bm25_manager):

@@ -57,7 +57,8 @@ class BM25:
 
     def get_top_n(self, query, documents, n=5):
 
-        assert self.corpus_size == len(documents), "The documents given don't match the index corpus!"
+        assert self.corpus_size == len(
+            documents), "The documents given don't match the index corpus!"
 
         scores = self.get_scores(query)
         top_n = np.argsort(scores)[::-1][:n]
@@ -83,7 +84,8 @@ class BM25Okapi(BM25):
         # idf can be negative if word is contained in more than half of documents
         negative_idfs = []
         for word, freq in tqdm(nd.items()):
-            idf = math.log(self.corpus_size - freq + 0.5) - math.log(freq + 0.5)
+            idf = math.log(self.corpus_size - freq + 0.5) - \
+                math.log(freq + 0.5)
             self.idf[word] = idf
             idf_sum += idf
             if idf < 0:
@@ -108,4 +110,19 @@ class BM25Okapi(BM25):
             q_freq = np.array([(doc.get(q) or 0) for doc in self.doc_freqs])
             score += (self.idf.get(q) or 0) * (q_freq * (self.k1 + 1) /
                                                (q_freq + self.k1 * (1 - self.b + self.b * doc_len / self.avgdl)))
+        return score
+
+    def get_single_score(self, query, doc_freq, doc_len):
+        """Gleicher Algorithmus, jedoch wwerden Argumente schrittweise verarbeitet"""
+
+        score = 0
+        for q in query:
+            q_freq = doc_freq.get(q, 0)
+            score += self.idf.get(q, 0) * (
+                (q_freq * (self.k1 + 1)) / (
+                    q_freq + self.k1 * (
+                        1 - self.b + self.b * doc_len / self.avgdl
+                    )
+                )
+            )
         return score

@@ -30,8 +30,10 @@ def url_cleaning(text):
     text = re.sub(url_regex, f' {URL_TOKEN} ', text)
     return text
 
+
 def comma_separation_cleaning(text):
     return text.replace(', ', ' , ')
+
 
 def multi_special_char_cleaning(text):
     text = re.sub(r'([a-zA-Z])\.{2,}', r"\1. ", text)
@@ -44,14 +46,17 @@ def multi_special_char_cleaning(text):
     text = text.replace('=', ' ')
     return text
 
+
 def multi_letter_delete(text):
     return re.sub(r'([a-zA-Z])\1{3,}', r'\1', text)
+
 
 def square_bracket_cleaning(text):
     barcket_pattern = r'\[.*?\]'
     found_brackets = re.findall(barcket_pattern, text)
     text = re.sub(barcket_pattern, '', text)
     return text
+
 
 def parenthesis_cleaning(text):
     text = text.replace('{', '(')
@@ -60,10 +65,12 @@ def parenthesis_cleaning(text):
     text = text.replace('(', ' (')
     return text
 
+
 def sub_args_cleaning(text):
     text = re.sub(r'([1-9]+[0-9]*[-][A-Za-z])', r' \1 ', text)
     text = re.sub(r'([1-9]+[0-9]*[).])', r' \1 ', text)
     return text
+
 
 def simple_special_char_changes(text):
     # Bindestriche
@@ -82,10 +89,12 @@ def simple_special_char_changes(text):
     text = text.replace(':', ': ')
     return text
 
+
 def number_cleaning(text):
     text = re.sub(r'\d*\.\d+%|\d+%', PERCENT_TOKEN, text)
     text = re.sub(r'\d+', NUM_TOKEN, text)
     return text
+
 
 def full_text_cleaning(text):
     """Text wird als ein String betrachtet und gesäubert
@@ -107,7 +116,7 @@ def full_text_cleaning(text):
     text = sub_args_cleaning(text)
     text = simple_special_char_changes(text)
     text = number_cleaning(text)
-    
+
     return text
 
 
@@ -200,7 +209,8 @@ def natural_language_clean(text):
 
     return text
 
-def clean_text_simple(text):
+
+def sentiment_clean(text):
     text = url_cleaning(text)
     text = comma_separation_cleaning(text)
     text = multi_special_char_cleaning(text)
@@ -218,6 +228,7 @@ def clean_text_simple(text):
     text = ' '.join(text.split()).strip()
 
     return text
+
 
 def machine_model_clean(text):
     """Entferne noch mehr Sonderzeichen, um einen sauberen Text zu erzeugen.
