@@ -10,23 +10,14 @@ QUERIES_PATH = os.path.join(RESOURCES_PATH, "topics.csv")
 QUERIES_AUTOMATIC_PATH = os.path.join(RESOURCES_PATH, "topics-automatic.csv")
 ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "args-me.csv")
 CLEAN_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiment_args.csv")
+QUERY_SENTIMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiments/query_sentiments.csv")
 ARGUMENT_SENTIMENTS_PATH = os.path.join(
     RESOURCES_PATH, "sentiments/argument_sentiments.csv"
 )
 SENTENCE_SENTIMENTS_PATH = os.path.join(
     RESOURCES_PATH, "sentiments/sentence_sentiments.csv"
 )
-QUERY_SENTIMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiments/query_sentiments.csv")
-
-
-def nltk_queries():
-    get_nltk_data()
-    nltk_run(read_csv(QUERIES_PATH, max_rows=-1), "queries")
-
-
-def nltk_arguments():
-    get_nltk_data()
-    nltk_run(read_csv(ARGUMENTS_PATH, 100), "arguments")
+FAILED_SENTIMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiments/failed.csv")
 
 
 def google_queries():
@@ -36,14 +27,12 @@ def google_queries():
     for row in read_csv(QUERIES_PATH, max_rows=-1):
         queries.append(row[5] + ".")
     google_run(
-        " ".join(queries), "queries", QUERY_SENTIMENTS_PATH, "",
-    )
-
-
-def google_test_argument(argument):
-    # argument = [doc,stance,text]
-    google_run(
-        argument, "test", "", "",
+        " ".join(queries),
+        "queries",
+        QUERY_SENTIMENTS_PATH,
+        ARGUMENT_SENTIMENTS_PATH,
+        SENTENCE_SENTIMENTS_PATH,
+        FAILED_SENTIMENTS_PATH,
     )
 
 
@@ -56,9 +45,23 @@ def count_analyzed():
 
 def count_failed():
     count = 0
-    for arg in read_csv("../resources/sentiments/failed.csv", -1):
+    for arg in read_csv(FAILED_SENTIMENTS_PATH, -1):
         count += 1
     return count
+
+
+def get_csv_args():
+    csv_args = []
+    for num, arg in enumerate(read_csv(ARGUMENT_SENTIMENTS_PATH, -1), start=1):
+        csv_args.append(arg[0])
+    return csv_args
+
+
+def check_existing(argument, csv_args):
+    if argument[0] in csv_args:
+        return True
+    else:
+        return False
 
 
 def find_duplicates():
@@ -94,25 +97,7 @@ def check_missing(limit):
         print(tasks)
 
 
-def get_csv_args():
-    csv_args = []
-    for num, arg in enumerate(read_csv(ARGUMENT_SENTIMENTS_PATH, -1), start=1):
-        csv_args.append(arg[0])
-    return csv_args
-
-
-# def compare_to_csv():
-# test for all arguments analyzed
-
-
-def check_existing(argument, csv_args):
-    if argument[0] in csv_args:
-        return True
-    else:
-        return False
-
-
-def async_google_argument(limit):
+def google_arguments_limit(limit):
     print("\nrunning analysis")
     t_start = time.time()
     loop = asyncio.get_event_loop()
@@ -143,8 +128,10 @@ def async_google_argument(limit):
                         google_run(
                             argument,
                             "argument",
+                            QUERY_SENTIMENTS_PATH,
                             ARGUMENT_SENTIMENTS_PATH,
                             SENTENCE_SENTIMENTS_PATH,
+                            FAILED_SENTIMENTS_PATH,
                         )
                     )
                 # dummy in csv
@@ -186,7 +173,7 @@ def async_google_argument(limit):
         if count < limit:
             # wait a minute for 600 quota/min limit
             print("Waiting before new request...")
-            time.sleep(72)
+            time.sleep(69)
     print("Done, limit reached.")
     print(f"Added: {count - startCount}")
     print(f"Fails: {failCount}")
@@ -195,8 +182,13 @@ def async_google_argument(limit):
     loop.close()
 
 
+def google_arguments_ids(ids):
+    return
+
+
 if __name__ == "__main__":
-    limit = 150000
+    # maximum is 387692
+    limit = 200000
     async_google_argument(limit)
     find_duplicates()
     check_missing(limit)
