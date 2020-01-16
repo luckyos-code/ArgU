@@ -43,6 +43,7 @@ def read_csv_header(path, delimiter=','):
         csv_reader = csv.reader(f_in, delimiter=delimiter)
         return next(csv_reader)
 
+
 class Argument:
     """Argument, das aus einer Zeile der CSV generiert wird"""
 
@@ -62,7 +63,12 @@ class Argument:
     @property
     def text_machine(self):
         """Text for CBOW, BM25"""
-        return tools.machine_model_clean(self.text_raw)
+        return tools.machine_model_clean(self.text_nl)
+
+    @property
+    def text_sentiment(self):
+        """Text für die Sentiment Analyse"""
+        return tools.sentiment_clean(self.text_raw)
 
     @staticmethod
     def to_vec(split_text, model, vector_size):
@@ -76,7 +82,6 @@ class Argument:
         emb_matrix = np.zeros(
             (len(split_text), vector_size)
         )
-
 
         unk_word_count = 0
         unk_words = []
@@ -109,6 +114,7 @@ class ArgumentTextIterator:
             else:
                 yield argument.text
 
+
 class ArgumentCbowIterator:
     """Iterator für bestimmte Formatierung, umd as CBOW Modell
         zu trainieren"""
@@ -132,6 +138,7 @@ class ArgumentIterator:
     def __iter__(self):
         for argument in read_arguments(self.path, self.max_args):
             yield argument
+
 
 class TrainCSVIterator:
     def __init__(self, train_cbow_path, only_texts=False, max_rows=-1):
@@ -159,8 +166,9 @@ class TrainCSVIterator:
                 else:
                     yield row
 
-                if (i+1) == self.max_rows:
+                if (i + 1) == self.max_rows:
                     break
+
 
 def read_arguments(path, max_args=-1):
     """Generator um alle CSV direkt in Argument-Objekte zu konvertieren

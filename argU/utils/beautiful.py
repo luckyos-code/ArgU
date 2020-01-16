@@ -1,27 +1,32 @@
 from utils.reader import FindArgumentIterator
 
 
-def print_argument_texts(ids, path, print_all=False):
+def print_argument_texts(ids, path, print_full_texts=False):
     """Gib zu den gefundenen Argument IDs die passenden Meta-Informationen aus
 
     Args:
         ids (list): Argument IDs
         path (str): Pfad zur CSV Datei mit den Argumenten
-        print_all (bool): Soll alles angezeigt werden?
+        print_full_texts (bool): Soll alles angezeigt werden
+            oder nur ein Bruchteil?
     """
-    if print_all:
-        for argument in FindArgumentIterator(path, ids):
-            print(f"{argument.id}\n")
-            print(f"\t1. Raw -> {argument.text_raw}\n")
-            print(f"\t2. Clean -> {argument.text_nl}\n")
-            print(f"\t3. Model -> {argument.text_machine}")
-            print('\n', '=' * 40, '\n')
-    else:
-        for argument in FindArgumentIterator(path, ids):
-            print((
-                f"Length = {len(argument.text_nl)}, "
-                f"Text = {' '.join(argument.text_raw.split()[:25])} ...\n"
-            ))
+
+    for argument in FindArgumentIterator(path, ids):
+        text_raw = argument.text_raw
+        text_sentiment = argument.text_sentiment
+        text_machine = argument.text_machine
+
+        print(f"{argument.id}\n")
+        if print_full_texts:
+            print(f"\t1. Original -> {text_raw}\n")
+            print(f"\t2. Sentiment -> {text_sentiment}\n")
+            print(f"\t3. Embedding + BM25 -> {text_machine}")
+        else:
+            print(f"\t1. Original -> {text_raw[:40]}\n")
+            print(f"\t2. Sentiment -> {text_sentiment[:40]}\n")
+            print(f"\t3. Embedding + BM25 -> {text_machine[:40]}")
+        print('\n', '=' * 80, '\n')
+
 
 def print_embedding_examples(model, words):
     for word in words:
