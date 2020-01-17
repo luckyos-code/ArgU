@@ -1,6 +1,7 @@
 from sentiment.nltk import get_nltk_data, run as nltk_run
 from sentiment.google import run as google_run
 from utils.reader import read_csv, read_csv_header
+from more_itertools import unique_everseen
 
 import os, rootpath, csv, asyncio, time
 
@@ -184,7 +185,33 @@ def google_arguments_limit(limit):
     loop.close()
 
 
-def google_arguments_ids(ids):
+def add_quota_fails():
+    failed_args = []
+    for arg in read_csv(FAILED_SENTIMENTS_PATH, -1):
+        if arg[2][:3] == '429':
+            failed_args.append([arg[0],'',arg[1]])
+    count = count_analyzed()
+    tasks = len(failed_args)
+    for failed in failed_args:
+        google_run(
+            failed,
+            "argument",
+            QUERY_SENTIMENTS_PATH,
+            ARGUMENT_SENTIMENTS_PATH,
+            SENTENCE_SENTIMENTS_PATH,
+            FAILED_SENTIMENTS_PATH,
+        )
+    print(f"Before: {count}")
+    print(f"Tasks: {tasks}")
+    print(f"Added: {count_analyzed() - count}")
+
+
+def remove_duplicates(csv):
+    with open(csv,'r') as in_file, open('no_dup.csv','w') as out_file:
+        out_file.writelines(unique_everseen(in_file))
+
+
+def remove_dummies():
     return
 
 
