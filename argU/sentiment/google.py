@@ -54,7 +54,7 @@ async def run(content, mode, queryCSV, argCSV, sentenceCSV, failedCSV):
                     quotechar='"',
                     quoting=csv.QUOTE_MINIMAL,
                 )
-                if os.stat(csvpath1).st_size == 0:
+                if os.stat(argCSV).st_size == 0:
                     argument_sentiment_writer.writerow(
                         ["doc", "sentiment_score", "sentiment_magnitude"]
                     )

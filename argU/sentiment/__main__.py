@@ -65,7 +65,7 @@ def check_existing(argument, csv_args):
 
 
 def find_duplicates():
-    print("\nrunning duplicate check")
+    print("\nRunning duplicate check")
     csv_args = []
     duplicates = []
     for arg in read_csv(ARGUMENT_SENTIMENTS_PATH, -1):
@@ -79,7 +79,7 @@ def find_duplicates():
 
 
 def check_missing(limit):
-    print("\nrunning missing check")
+    print("\nRunning missing check")
     tasks = []
     # get analyzed arguments
     csv_args = get_csv_args()
@@ -98,7 +98,6 @@ def check_missing(limit):
 
 
 def google_arguments_limit(limit):
-    print("\nrunning analysis")
     t_start = time.time()
     loop = asyncio.get_event_loop()
     count = count_analyzed()
@@ -109,6 +108,8 @@ def google_arguments_limit(limit):
     # if needed for fix
     # csv_args = get_csv_args()
     while count < limit:
+        print("\nRunning analysis")
+        print("")
         t0 = time.time()
         tasks = []
         olddummyCount = dummyCount
@@ -174,6 +175,7 @@ def google_arguments_limit(limit):
             # wait a minute for 600 quota/min limit
             print("Waiting before new request...")
             time.sleep(69)
+    # done
     print("Done, limit reached.")
     print(f"Added: {count - startCount}")
     print(f"Fails: {failCount}")
@@ -188,7 +190,7 @@ def google_arguments_ids(ids):
 
 if __name__ == "__main__":
     # maximum is 387692
-    limit = 200000
-    async_google_argument(limit)
+    limit = 387692
+    google_arguments_limit(limit)
     find_duplicates()
     check_missing(limit)
