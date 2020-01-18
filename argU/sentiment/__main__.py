@@ -187,27 +187,31 @@ def google_arguments_limit(limit):
 
 def add_quota_fails():
     failed_args = []
+    tasks = []
     for arg in read_csv(FAILED_SENTIMENTS_PATH, -1):
-        if arg[2][:3] == '429':
-            failed_args.append([arg[0],'',arg[1]])
+        if arg[2][:3] == "429":
+            failed_args.append([arg[0], "", arg[1]])
     count = count_analyzed()
-    tasks = len(failed_args)
     for failed in failed_args:
-        google_run(
-            failed,
-            "argument",
-            QUERY_SENTIMENTS_PATH,
-            ARGUMENT_SENTIMENTS_PATH,
-            SENTENCE_SENTIMENTS_PATH,
-            FAILED_SENTIMENTS_PATH,
+        tasks.append(
+            google_run(
+                failed,
+                "argument",
+                QUERY_SENTIMENTS_PATH,
+                ARGUMENT_SENTIMENTS_PATH,
+                SENTENCE_SENTIMENTS_PATH,
+                FAILED_SENTIMENTS_PATH,
+            )
         )
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.gather(*tasks))
     print(f"Before: {count}")
-    print(f"Tasks: {tasks}")
+    print(f"Tasks: {len(tasks)}")
     print(f"Added: {count_analyzed() - count}")
 
 
 def remove_duplicates(csv):
-    with open(csv,'r') as in_file, open('no_dup.csv','w') as out_file:
+    with open(csv, "r") as in_file, open("no_dup.csv", "w") as out_file:
         out_file.writelines(unique_everseen(in_file))
 
 
@@ -218,6 +222,4 @@ def remove_dummies():
 if __name__ == "__main__":
     # maximum is 387692
     limit = 387692
-    google_arguments_limit(limit)
-    find_duplicates()
-    check_missing(limit)
+    print("I don't do anything.")

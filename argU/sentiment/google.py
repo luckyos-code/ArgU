@@ -20,7 +20,6 @@ async def run(content, mode, queryCSV, argCSV, sentenceCSV, failedCSV):
     elif mode == "argument":
         # doc, text_content = content[9], content[0]
         doc, text_content = content[0], content[2]
-
     # set options
     type_ = enums.Document.Type.PLAIN_TEXT
     language = "en"
