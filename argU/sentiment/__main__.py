@@ -22,6 +22,7 @@ FAILED_SENTIMENTS_PATH = os.path.join(RESOURCES_PATH, "sentiments/failed.csv")
 
 
 def google_queries():
+	# get the automatic run and the bonus queries
     queries = []
     for row in read_csv(QUERIES_AUTOMATIC_PATH, max_rows=-1):
         queries.append(row[1])
@@ -123,7 +124,8 @@ def google_arguments_limit(limit):
                 #    continue
                 # at least 24 words in argument
                 if len(argument[2].split()) > 24:
-                    # only analyze first 1000 characters
+                    # just analyze first 1000 characters
+                    # more costs multiple google api requests
                     argument[2] = argument[2][:1000]
                     # add new argument as async task
                     tasks.append(

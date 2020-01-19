@@ -74,6 +74,7 @@ async def run(content, mode, queryCSV, argCSV, sentenceCSV, failedCSV):
             addition = ""
             number = 1
             for num, sentence in enumerate(response.sentences, start=1):
+                # handle weird stuff in data
                 if num == 51:
                     number = 1
                     addition = "000"
