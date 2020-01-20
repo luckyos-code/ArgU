@@ -8,6 +8,7 @@ import rootpath
 import sys
 import json
 import csv
+import warnings
 import numpy as np
 from tqdm import tqdm
 from sklearn import preprocessing
@@ -19,6 +20,8 @@ from indexing.models import BM25Manager, CBOW, DualEmbedding
 from utils.reader import TrainCSVIterator, Argument
 from utils.utils import path_not_found_exit
 from utils.beautiful import print_argument_texts
+
+warnings.filterwarnings("error")
 
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 TRAIN_PATH = os.path.join(RESOURCES_PATH, 'cbow_train.csv')
@@ -72,7 +75,7 @@ def create_index(csv_path, source_path, cbow_model, bm25_model, max_rows=-1):
 
 
 def analyze_query(query, index_csv_path, cbow_model, bm25_model,
-                  alpha=0.5, max_args=-1, top_n=15):
+                  max_args=-1, top_n=15):
     """ Lade den Index und werte die Argumente abhängig vond er Query aus
 
     Args:
@@ -129,25 +132,17 @@ def analyze_query(query, index_csv_path, cbow_model, bm25_model,
                 arg_ids.append(
                     arg_id
                 )
-            except Exception as e:
-                print(arg_id, arg_emb)
+            except RuntimeWarning as e:
+                print(e)
+                print(arg_id)
 
             if i + 1 == max_args:
                 break
 
         print('Normalisieren...')
         bm25_scores = preprocessing.normalize([bm25_scores])[0]
-        desim_scores = preprocessing.normalize([desim_scores])[0]
-        final_scores = []
-
-        print('Finale Scores berechnen...')
-        for b, d, a in zip(bm25_scores, desim_scores, arg_ids):
-            final_scores.append(alpha * b + (1 - alpha) * d)
-
-        print('Top-N Bestimmung...')
-        top_n = np.argsort(final_scores)[::-1][:top_n]
-        top_args = [arg_ids[i] for i in top_n]
-        print(top_args)
+        # desim_scores = preprocessing.normalize([desim_scores])[0]
+        return bm25_scores, desim_scores
 
 
 cbow = CBOW.load(CBOW_MODEL_PATH)
@@ -156,11 +151,20 @@ bm25_manager = BM25Manager.load(BM25_PATH)
 if args.mode == 'train':
     create_index(INDEX_PATH, TRAIN_PATH, cbow.model, bm25_manager.index)
 elif args.mode == 'load':
-    analyze_query(
+    bm25_scores, desim_scores = analyze_query(
         'Donald Trump is bad',
         INDEX_PATH,
         cbow.model,
         bm25_manager.index,
-        alpha=0.5,
         max_args=-1
     )
+
+    combined_scores = []
+    alpha = 0.5
+
+    for b, d, a in zip(bm25_scores, desim_scores, arg_ids):
+        final_scores.append(alpha * b + (1 - alpha) * d)
+
+    top_n = np.argsort(final_scores)[::-1][:top_n]
+    top_args = [arg_ids[i] for i in top_n]
+    print(top_args)

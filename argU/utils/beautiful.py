@@ -10,22 +10,21 @@ def print_argument_texts(ids, path, print_full_texts=False):
         print_full_texts (bool): Soll alles angezeigt werden
             oder nur ein Bruchteil?
     """
-
     for argument in FindArgumentIterator(path, ids):
         text_raw = argument.text_raw
         text_sentiment = argument.text_sentiment
         text_machine = argument.text_machine
 
-        print(f"{argument.id}\n")
+        # print(f"{argument.id}\n")
         if print_full_texts:
-            print(f"\t1. Original -> {text_raw}\n")
+            print(f"\t1. Original -> {text_raw[:100]}\n")
             print(f"\t2. Sentiment -> {text_sentiment}\n")
             print(f"\t3. Embedding + BM25 -> {text_machine}")
         else:
             print(f"\t1. Original -> {text_raw[:40]}\n")
             print(f"\t2. Sentiment -> {text_sentiment[:40]}\n")
             print(f"\t3. Embedding + BM25 -> {text_machine[:40]}")
-        print('\n', '=' * 80, '\n')
+        # print('\n', '=' * 80, '\n')
 
 
 def print_embedding_examples(model, words):

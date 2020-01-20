@@ -205,7 +205,6 @@ class FindArgumentIterator:
         found_arguments = 0
         for argument in read_arguments(self.path, -1):
             if argument.id in self.ids:
-                print(argument.id)
                 yield argument
 
                 found_arguments += 1
