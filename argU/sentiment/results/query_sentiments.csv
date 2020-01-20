@@ -1,0 +1,91 @@
+qid,text,sentiment_score,sentiment_magnitude
+1,Should Teachers Get Tenure?,0.1000,0.1000
+2,Is Vaping with E-Cigarettes Safe?,0.6000,0.6000
+3,Should Insider Trading Be Allowed?,-0.2000,0.2000
+4,Should Corporal Punishment Be Used in Schools?,0.0000,0.0000
+5,Should Social Security Be Privatized?,0.2000,0.2000
+6,Is a College Education Worth It?,0.5000,0.5000
+7,Should Felons Who Have Completed Their Sentence Be Allowed to Vote?,0.0000,0.0000
+8,Should Abortion Be Legal?,-0.2000,0.2000
+9,Should Students Have to Wear School Uniforms?,0.0000,0.0000
+10,Should Any Vaccines Be Required for Children?,-0.3000,0.3000
+11,Should Performance Enhancing Drugs Be Accepted in Sports?,0.3000,0.3000
+12,Should birth control pills be available over the counter?,-0.2000,0.2000
+13,Can Alternative Energy Effectively Replace Fossil Fuels?,0.4000,0.4000
+14,Is Sexual Orientation Determined at Birth?,-0.1000,0.1000
+15,Should Animals Be Used for Scientific or Commercial Testing?,0.0000,0.0000
+16,Should Prescription Drugs Be Advertised Directly to Consumers?,-0.6000,0.6000
+17,Should Recreational Marijuana Be Legal?,0.0000,0.0000
+18,Should Churches Remain Tax-Exempt?,0.0000,0.0000
+19,Should Gay Marriage Be Legal?,0.4000,0.4000
+20,Is Drinking Milk Healthy for Humans?,0.2000,0.2000
+21,Is Human Activity Primarily Responsible for Global Climate Change?,-0.1000,0.1000
+22,Is a Two-State Solution an Acceptable Solution to the Israeli-Palestinian Conflict?,0.0000,0.0000
+23,Should Euthanasia or Physician-Assisted Suicide Be Legal?,0.1000,0.1000
+24,Does Lowering the Federal Corporate Income Tax Rate Create Jobs?,-0.1000,0.1000
+25,Should Tablets Replace Textbooks in Schools?,0.0000,0.0000
+26,Do Standardized Tests Improve Education?,0.2000,0.2000
+27,Should More Gun Control Laws Be Enacted?,0.1000,0.1000
+28,Should Prostitution Be Legal?,-0.1000,0.1000
+29,Should the Government Allow Illegal Immigrants to Become Citizens?,-0.8000,0.8000
+30,Should Adults Have the Right to Carry a Concealed Handgun?,0.2000,0.2000
+31,Is Obesity a Disease?,0.0000,0.0000
+32,Do Electronic Voting Machines Improve the Voting Process?,0.0000,0.0000
+33,Should People Become Vegetarian?,0.3000,0.3000
+34,Are Social Networking Sites Good for Our Society?,0.7000,0.7000
+35,Do Violent Video Games Contribute to Youth Violence?,-0.3000,0.3000
+36,Is Golf a Sport?,0.3000,0.3000
+37,Is Cell Phone Radiation Safe?,0.6000,0.6000
+38,Should Marijuana Be a Medical Option?,0.1000,0.1000
+39,Should the Federal Minimum Wage Be Increased?,0.3000,0.3000
+40,Should the Death Penalty Be Allowed?,0.0000,0.0000
+41,Should Student Loan Debt Be Easier to Discharge in Bankruptcy?,0.2000,0.2000
+42,Should Fighting Be Allowed in Hockey?,0.2000,0.2000
+43,Should Bottled Water Be Banned?,-0.8000,0.8000
+44,Should Election Day be a National Holiday?,0.3000,0.3000
+45,Should the Penny Stay in Circulation?,-0.2000,0.2000
+46,Should Net Neutrality Be Restored?,-0.9000,0.9000
+47,Is Homework Beneficial?,0.5000,0.5000
+48,Should the the Voting Age be Lowered?,0.0000,0.0000
+49,Should Body Cameras be Mandatory for Police?,-0.2000,0.2000
+50,Should Everyone Get a Universal Basic Income?,0.0000,0.0000
+0001,abortion ban,-0.1000,0.1000
+0002,climate change real,0.0000,0.0000
+0003,donald trump good president,0.5000,0.5000
+0004,gay marriage illegal,-0.6000,0.6000
+0005,vaccination should not be mandatory,0.0000,0.0000
+0006,false rape allegations problem,-0.8000,0.8000
+0007,gender is a social construct,0.0000,0.0000
+0008,gun ownership legal,0.1000,0.1000
+0009,reasonableness of universal healthcare,0.0000,0.0000
+0010,marijuana should be legalized,0.0000,0.0000
+0011,god doesn't exist,-0.2000,0.2000
+0012,ban plastic bottles,0.0000,0.0000
+0013,abolish death penalty,0.1000,0.1000
+0014,racism against whites does exist,-0.4000,0.4000
+0015,religion is unnecessary,-0.5000,0.5000
+0016,the bible is a reliable historical source,0.7000,0.7000
+0017,the media should not be biased,0.5000,0.5000
+0018,illegal immigration should be stopped,-0.4000,0.4000
+0019,no country should possess nuclear weapons,-0.1000,0.1000
+0020,speed limits are wrong,-0.5000,0.5000
+0021,existence of god,0.1000,0.1000
+0022,plastic bottles,0.0000,0.0000
+0023,death penalty,0.2000,0.2000
+0024,gun ban,0.0000,0.0000
+0025,racism against whites,-0.4000,0.4000
+0026,media bias,0.0000,0.0000
+0027,bible reliable,0.4000,0.4000
+0028,religion necessary,0.2000,0.2000
+0029,universal health care,0.1000,0.1000
+0030,abortion ban,-0.1000,0.1000
+0031,climate change real,0.0000,0.0000
+0032,donald trump,0.4000,0.4000
+0033,gay marriage,0.1000,0.1000
+0034,vaccination mandatory,0.0000,0.0000
+0035,false rape allegations,-0.8000,0.8000
+0036,gender social construct,0.0000,0.0000
+0037,marijuana legalization,0.0000,0.0000
+0038,illegal immigration,-0.3000,0.3000
+0039,nuclear weapons,0.0000,0.0000
+0040,speed limit,0.2000,0.2000
