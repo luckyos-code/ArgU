@@ -67,10 +67,10 @@ class BM25:
 
 class BM25Okapi(BM25):
     def __init__(self, iterable_corpus=None, tokenizer=None, k1=1.5, b=0.75, epsilon=0.25):
+        self.k1 = k1
+        self.b = b
+        self.epsilon = epsilon
         if iterable_corpus is not None:
-            self.k1 = k1
-            self.b = b
-            self.epsilon = epsilon
             super().__init__(iterable_corpus, tokenizer)
 
     def _calc_idf(self, nd):

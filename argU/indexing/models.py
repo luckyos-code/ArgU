@@ -25,13 +25,13 @@ class EpochLogger(CallbackAny2Vec):
         self.store_path = store_path
 
     def on_epoch_begin(self, model):
-        self.last_time = time()
+        self.last_time = time.time()
 
     def on_epoch_end(self, model):
         print(
-            f"Epoch {self.epoch} - Time Duration: {(time() - self.last_time):.2f}s"
+            f"Epoch {self.epoch} - Time Duration: {(time.time() - self.last_time):.2f}s"
         )
-        self.last_time = time()
+        self.last_time = time.time()
         if self.epoch % self.epochs_store == 0 and self.store_path is not None:
             model.save(self.store_path)
             print("Modell gespeichert...")
@@ -121,37 +121,57 @@ class BM25Manager:
     #     return scores
 
     @staticmethod
-    def load(path):
+    def load(path, mode=None):
         """Lade einen als JSON gespeicherten `BM25Manager`
 
         Args:
             path (:obj:`str`): Dateipfad
+            mode (:obj:`str`, optional): Entweder None, 'meta' oder 'args'. Manchmal braucht
+                man nicht das ganze Modell
         """
-        
+
         print("Lade BM25 Modell...")
+        tick = time.time()
 
-        with open(path, 'r') as f_in:
+        bm25_manager = BM25Manager()
+        bm25_manager.index = BM25Okapi()
 
-            tick = time.time()
-            data = json.load(f_in)
+        file_path = path.split('.')[:-1]
+        file_type = path.split('.')[-1]
+        meta_path = '.'.join([*file_path, 'meta', file_type])
+        args_path = '.'.join([*file_path, 'args', file_type])
 
-            bm25_manager = BM25Manager()
+        if mode is None or mode == 'meta':
+            with open(meta_path, 'r') as f_in:
+                meta_data = json.load(f_in)
 
-            bm25_manager.index = BM25Okapi()
-            bm25_manager.index.idf = data['idf']
-            bm25_manager.index.corpus_size = data['corpus_size']
-            bm25_manager.index.doc_len = data['doc_len']
-            bm25_manager.index.doc_freqs = data['doc_freqs']
-            bm25_manager.index.k1 = data['k1']
-            bm25_manager.index.b = data['b']
-            bm25_manager.index.avgdl = data['avgdl']
-            bm25_manager.index.arg_ids = data['arg_ids']
+                bm25_manager.index.idf = meta_data['idf']
+                bm25_manager.index.corpus_size = meta_data['corpus_size']
+                bm25_manager.index.k1 = meta_data['k1']
+                bm25_manager.index.b = meta_data['b']
+                bm25_manager.index.avgdl = meta_data['avgdl']
 
-            time_spent = time.time() - tick
+        if mode is None or mode == 'args':
+            with open(args_path, 'r') as f_in:
+                args_data = json.load(f_in)
+
+                bm25_manager.index.doc_len = args_data['doc_len']
+                bm25_manager.index.doc_freqs = args_data['doc_freqs']
+                bm25_manager.index.arg_ids = args_data['arg_ids']
+
+        time_spent = time.time() - tick
+
+        if mode is None or mode == 'args':
             print(
-                f"BM25: Benötigte zeit zum Laden von {len(bm25_manager.index.arg_ids)} Argumenten: {time_spent:.2f}s")
+                f"BM25: Benötigte zeit zum Laden von "
+                f"{len(bm25_manager.index.arg_ids)} "
+                f"Argumenten: {time_spent:.2f}s"
+            )
+        else:
+            print('Metadaten für BM25Kapi wurden geladen...')
+            print(f"Argumenten: {time_spent:.2f}s")
 
-            return bm25_manager
+        return bm25_manager
 
     def store(self, path):
         """Speichere diesen `BM25Manager`
@@ -161,23 +181,36 @@ class BM25Manager:
         """
 
         tick = time.time()
-        payload = {
+
+        file_path = path.split('.')[:-1]
+        file_type = path.split('.')[-1]
+        meta_path = '.'.join([*file_path, 'meta', file_type])
+        args_path = '.'.join([*file_path, 'args', file_type])
+
+        meta_payload = {
             'idf': self.index.idf,
             'corpus_size': self.index.corpus_size,
-            'doc_len': self.index.doc_len,
-            'doc_freqs': self.index.doc_freqs,
             'k1': self.index.k1,
             'b': self.index.b,
             'avgdl': self.index.avgdl,
-            'arg_ids': self.index.arg_ids
         }
 
-        with open(path, 'w') as f_out:
-            json.dump(payload, f_out)
+        args_payload = {
+            'doc_len': self.index.doc_len,
+            'doc_freqs': self.index.doc_freqs,
+            'arg_ids': self.index.arg_ids,
+        }
+
+        with open(meta_path, 'w') as f_out:
+            json.dump(meta_payload, f_out)
+
+        with open(args_path, 'w') as f_out:
+            json.dump(args_payload, f_out)
 
         time_spent = time.time() - tick
         print(
-            f"BM25: Benötigte zeit zum Speichern von {len(self.index.arg_ids)} Argumenten: {time_spent:.2f}s")
+            f"BM25: Benötigte zeit zum Speichern von {len(self.index.arg_ids)} Argumenten: {time_spent:.2f}s"
+        )
 
     # def get_top_n_ids(self, query, top_n=10):
     #     """Suche für die gegebene Query die besten `top_n` Ergebnisse

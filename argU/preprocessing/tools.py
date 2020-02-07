@@ -230,6 +230,10 @@ def sentiment_clean(text):
     return text
 
 
+with open(STOPWORDS_PATH, "r") as f_in:
+    stopwords = f_in.read().split("\n")
+
+
 def machine_model_clean(text):
     """Entferne noch mehr Sonderzeichen, um einen sauberen Text zu erzeugen.
         Damit können Wahrscheinlich keine Sätze mehr sauber getrennt werden!
@@ -241,7 +245,6 @@ def machine_model_clean(text):
         str: bearbeiteter Text
     """
 
-    stopwords = open(STOPWORDS_PATH, "r").read().split("\n")
     text = re.sub(r'[,"]', '', text)
     text = re.sub(r' - |:|;', ' ', text)
 
