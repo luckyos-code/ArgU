@@ -91,4 +91,4 @@ nltk = "==3.4.5"
 sentence-splitter = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"
