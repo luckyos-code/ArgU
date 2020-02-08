@@ -4,20 +4,16 @@ import json
 
 
 def collect_scores(path, query_ids, query_texts, top_args, sentiments):
-    if not os.path.isfile(path):
-        result_log_header = ['id', 'query', 'top_args']
-        with open(path, 'w', newline='', encoding='utf-8') as f_out:
-            writer = csv.writer(f_out, delimiter=',', quotechar='"',
-                                quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(result_log_header)
-
-    with open(path, 'a', newline='', encoding='utf-8') as f_out:
+    with open(path, 'w', newline='', encoding='utf-8') as f_out:
         writer = csv.writer(
             f_out,
             delimiter=",",
             quotechar='"',
             quoting=csv.QUOTE_MINIMAL,
         )
+
+        result_log_header = ['id', 'query', 'top_args']
+        writer.writerow(result_log_header)
 
         for query_id, query_text, (arg_ids, arg_fs, _, _), sents in zip(
             query_ids, query_texts, top_args, sentiments
@@ -51,7 +47,7 @@ def scores_evaluate(scores_path):
 
             # Entferne Argumente, deren desim < 0 ist
             for (arg, desim_score, sent, sent_magn) in ordered_tuples:
-                if desim_score < 0:
+                if desim_score <= 0.03:
                     continue
 
                 final_score = desim_score + desim_score * abs(sent)
@@ -85,18 +81,17 @@ if __name__ == '__main__':
     queries_args = scores_evaluate(SCORES_PATH)
 
     for (query_id, query_text, args) in queries_args:
-        print(f"Query \"{query_text}\" hat noch {len(args)} Argumente")
+        print(f"Query \"{query_text}\" hat noch {len(args)} Argumente\n")
 
         arg_ids = [arg[0] for arg in args]
         arg_texts = dict()
         for arg in FindArgumentIterator(CSV_ARGS_PATH, arg_ids):
             arg_texts[arg.id] = arg.text_raw
 
-        print("Argumente:")
         for arg in args[:20]:
             print(arg)
-            print(arg_texts.get(arg[0], 'NOT FOUND')[:150])
-            print()
+            print(f"\t > {arg_texts.get(arg[0], 'NOT FOUND')[:150]}")
+        print(f"{'='*50}\n")
 
     # for arg in FindArgumentIterator(CSV_ARGS_PATH, []):
     # print(arg.text_raw)

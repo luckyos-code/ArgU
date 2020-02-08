@@ -34,16 +34,58 @@ BM25_PARTIONAL_PATHS = [
 ]
 
 parser = argparse.ArgumentParser()
-parser.add_argument('mode', choices=['run', 'create'])
-parser.add_argument('-c', '--create',
-                    choices=['all', 'bm25', 'cbow', 'index'], default='all')
+
+parser.add_argument(
+    'mode',
+    choices=['index', 'retrieve'],
+    help="Erstelle einen Index oder erhalte Argumente",
+)
+
+parser.add_argument(
+    '-n',
+    '--max_args',
+    default=-1,
+    type=int,
+    help='Menge der verwendeten Argumente. -1 = Alle Argumente',
+)
+
+parser.add_argument(
+    '-a',
+    '--alpha',
+    default=0.1,
+    type=float,
+    help='Alpha Einfluss BM25 und CBOW',
+)
+
+parser.add_argument(
+    '-c',
+    '--create',
+    choices=['all', 'bm25', 'cbow', 'index'],
+    default='all',
+)
+
+parser.add_argument(
+    '-q', '--query_range',
+    nargs='+',
+    type=int,
+    default=[0, 1],
+)
+
 args = parser.parse_args()
+
+print(args.max_args)
+print(args.alpha)
+print(args.query_range)
+
+if len(args.query_range) != 2 or args.query_range[0] < 0 or args.query_range[0] >= args.query_range[1]:
+    print("Query Range fehlerhaft...")
+    sys.exit(0)
 
 if not os.path.isfile(CSV_ARGS_PATH):
     print('Die Argumente müssen als CSV-Format vorliegen...')
     sys.exit(0)
 
-if args.mode == 'create':
+if args.mode == 'index':
     if args.create in ['cbow', 'all']:
 
         # Erstelle das CBOW Modell
@@ -105,7 +147,7 @@ if args.mode == 'create':
         del(cbow)
         del(bm25_manager)
 
-if args.mode == 'run':
+if args.mode == 'retrieve':
 
     # Teste ob die Pfade für CBOW und BM25 existieren
 
@@ -128,7 +170,12 @@ if args.mode == 'run':
     bm25_manager = BM25Manager.load(BM25_STORE_PATH, mode='meta')
     cbow = CBOW.load(CBOW_STORE_PATH)
 
-    query_ids, query_texts = queries.read(QUERIES_PATH, start=0, stop=2)
+    query_ids, query_texts = queries.read(
+        QUERIES_PATH,
+        start=args.query_range[0],
+        stop=args.query_range[1],
+    )
+
     query_texts = queries.clean(query_texts)
 
     print('\n', query_texts, '\n')
@@ -138,36 +185,45 @@ if args.mode == 'run':
         INDEX_STORE_PATH,
         cbow.model,
         bm25_manager.index,
-        max_args=2000,
+        max_args=args.max_args,
     )
 
     # Bestimme den finalen Score
     # Dazu werden beide Scores paarweise zusammengerechnet
     # Zusätzlich kommen Sentiment Score ins Spiel, der zur Sortierung dient
 
-    alpha = 0.1
     top_args = get_top_args(
         arg_ids,
         bm25_scores,
         desim_scores,
-        alpha=alpha,
+        alpha=args.alpha,
         top_n=200,
     )
 
     sentiments = get_sentiments(SENTIMENTS_PATH, top_args)
 
     # Speichere die gefundenen Argumente mit scores in eine Zwischendatei
-    scores.collect_scores(FOUND_ARGUMENTS_PATH, query_ids,
-                          query_texts, top_args, sentiments)
+    scores.collect_scores(
+        FOUND_ARGUMENTS_PATH,
+        query_ids,
+        query_texts,
+        top_args,
+        sentiments,
+    )
 
     # Speichere Argumente in dem passenden Output Format
     queries_args = scores.scores_evaluate(FOUND_ARGUMENTS_PATH)
 
+    method = 'ulT1DetroitnitzCbowBm25Sentiments'
     with open(RESULTS_PATH, 'w') as f_out:
         for (query_id, query_text, args) in queries_args:
             for i, arg in enumerate(args):
-                line = ' '.join(
-                    [query_id, 'Q0', arg[0], str(
-                        i + 1), str(arg[1]), 'Method', '\n']
-                )
-                f_out.write(line)
+                f_out.write(' '.join([
+                    query_id,
+                    'Q0',
+                    arg[0],
+                    str(i + 1),
+                    str(arg[1]),
+                    method,
+                    '\n',
+                ]))
