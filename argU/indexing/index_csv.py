@@ -219,7 +219,7 @@ def get_top_args(arg_ids, bm25_scores, desim_scores, alpha=0.5, top_n=10):
     return top_args_list
 
 
-def sentiment_sort_args(SENTIMENTS_PATH, top_args):
+def get_sentiments(SENTIMENTS_PATH, top_args):
     with open(SENTIMENTS_PATH, 'r', newline='', encoding='utf-8') as f_in:
         reader = csv.reader(
             f_in,
@@ -245,19 +245,21 @@ def sentiment_sort_args(SENTIMENTS_PATH, top_args):
             (sentiment_scores, sentiment_magnitudes)
         )
 
-    results = []
-    for arg_ids, query_sents in zip(top_args, query_sentiments):
-        abs_sent = [abs(i) for i in query_sents[0]]
-        pairings = [(i, p[0], p[1])
-                    for i, p in enumerate(zip(arg_ids[1], abs_sent))]
-        pairings = sorted(pairings, key=lambda x: (x[2], x[1]), reverse=True)
-        indices_order = [i[0] for i in pairings]
-        new_arg_ids = [arg_ids[0][i] for i in indices_order]
-        new_arg_scores = [(p[1], p[2]) for p in pairings]
-        results.append(
-            (new_arg_ids, new_arg_scores)
-        )
-    return results
+    return query_sentiments
+
+    # results = []
+    # for arg_ids, query_sents in zip(top_args, query_sentiments):
+    #     abs_sent = [abs(i) for i in query_sents[0]]
+    #     pairings = [(i, p[0], p[1])
+    #                 for i, p in enumerate(zip(arg_ids[1], abs_sent))]
+    #     pairings = sorted(pairings, key=lambda x: (x[2], x[1]), reverse=True)
+    #     indices_order = [i[0] for i in pairings]
+    #     new_arg_ids = [arg_ids[0][i] for i in indices_order]
+    #     new_arg_scores = [(p[1], p[2]) for p in pairings]
+    #     results.append(
+    #         (new_arg_ids, new_arg_scores)
+    #     )
+    # return results
 
 # if args.mode != 'read':
 #     cbow = CBOW.load(CBOW_MODEL_PATH)

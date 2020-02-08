@@ -10,9 +10,9 @@ sys.path.append(os.path.join(rootpath.detect(), 'argU'))
 
 from preprocessing.generate_train_csv import generate_cbow_train_file
 from indexing.models import CBOW, BM25Manager
-from indexing.index_csv import create_index, analyze_queries, combine_scores, get_top_args, sentiment_sort_args
+from indexing.index_csv import create_index, analyze_queries, combine_scores, get_top_args, get_sentiments
 from utils.reader import TrainCSVIterator, FindArgumentIterator
-from utils import queries
+from utils import queries, scores
 
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 CSV_ARGS_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
@@ -23,7 +23,8 @@ INDEX_STORE_PATH = os.path.join(RESOURCES_PATH, 'index.csv')
 SENTIMENTS_PATH = os.path.join(
     ROOT_PATH, 'argU/sentiment/results/argument_sentiments.csv'
 )
-FOUND_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, 'results.csv')
+FOUND_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, 'scores.csv')
+RESULTS_PATH = os.path.join(RESOURCES_PATH, 'results.txt')
 QUERIES_PATH = os.path.join(RESOURCES_PATH, 'topics-automatic-runs-task-1.xml')
 
 bm_25_splits = BM25_STORE_PATH.split('.')
@@ -128,7 +129,7 @@ if args.mode == 'run':
     bm25_manager = BM25Manager.load(BM25_STORE_PATH, mode='meta')
     cbow = CBOW.load(CBOW_STORE_PATH)
 
-    query_ids, query_texts = queries.read(QUERIES_PATH, start=0, stop=1)
+    query_ids, query_texts = queries.read(QUERIES_PATH, start=0, stop=2)
     query_texts = queries.clean(query_texts)
 
     print('\n', query_texts, '\n')
@@ -138,7 +139,7 @@ if args.mode == 'run':
         INDEX_STORE_PATH,
         cbow.model,
         bm25_manager.index,
-        max_args=1000,
+        max_args=2000,
     )
 
     # Bestimme den finalen Score
@@ -154,28 +155,20 @@ if args.mode == 'run':
         top_n=200,
     )
 
-    sentiment_sorted_args = sentiment_sort_args(SENTIMENTS_PATH, top_args)
+    sentiments = get_sentiments(SENTIMENTS_PATH, top_args)
 
-    # Speichere die gefundenen Argumente für eine Query in einem Log
-
-    if not os.path.isfile(FOUND_ARGUMENTS_PATH):
-        result_log_header = ['id', 'query', 'top_args', 'scores', 'alpha']
-        with open(FOUND_ARGUMENTS_PATH, 'w', newline='', encoding='utf-8') as f_out:
-            writer = csv.writer(f_out, delimiter=',', quotechar='"',
-                                quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(result_log_header)
-
-    with open(FOUND_ARGUMENTS_PATH, 'a', newline='', encoding='utf-8') as f_out:
-        writer = csv.writer(
-            f_out,
-            delimiter=",",
-            quotechar='"',
-            quoting=csv.QUOTE_MINIMAL,
-        )
-
-        for id, query, (arg_ids, arg_scores) in zip(query_ids, query_texts, sentiment_sorted_args):
-            line = [id, query, arg_ids, arg_scores, alpha]
-            writer.writerow(line)
+    # Speichere die gefundenen Argumente mit scores in eine Zwischendatei
+    scores.collect_scores(FOUND_ARGUMENTS_PATH, query_ids,
+                          query_texts, top_args, sentiments)
 
     # Speichere Argumente in dem passenden Output Format
-    # TODO
+    queries_args = scores.scores_evaluate(FOUND_ARGUMENTS_PATH)
+
+    with open(RESULTS_PATH, 'w') as f_out:
+        for (query_id, query_text, args) in queries_args:
+            for i, arg in enumerate(args):
+                line = ' '.join(
+                    [query_id, 'Q0', arg[0], str(
+                        i + 1), str(arg[1]), 'Method', '\n']
+                )
+                f_out.write(line)

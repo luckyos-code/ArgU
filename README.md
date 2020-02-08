@@ -2,6 +2,16 @@
 
 You build a system to support users who directly search for arguments, e.g., by supporting their stance, or by aiding them in building a stance on topics of a general societal interest such as abandonment of plastic bottles, animal experiments, abortion, etc. This subtask targets argumentative conversations. You will retrieve documents from the focused crawl with content from online debate portals (idebate.org, debatepedia.org, debatewise.org) and from Reddit's ChangeMyView. Be sure to retrieve good ''strong'' arguments. Our human assessors will label the retrieved documents manually, both for their general topical relevance, and for argument quality dimensions such as: (1) whether an argumentative text is logically cogent, (2) whether it is rhetorically well-written, and (3) whether it contributes to the users' stance-building process, i.e., somewhat similar to the concept of "utility" (refer to this paper for more information on argument quality 
 
+### Commands 
+
+First of all make sure, that you are in the correct directory `.../ArgU/`
+
+1. ` $ python argU/preprocessing/args_to_csv.py `
+	- Convert args-me.json -> args-me.csv
+2. ` $ python -m argU create -c=all `
+	- Create train file for cbow and bm25
+	- Also create a cbow model and store it
+3. ` $ python -m argU create -c=bm25 `
 ### Docker
 
 1. ` $ docker build -t argu . `
