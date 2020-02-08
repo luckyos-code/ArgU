@@ -109,10 +109,9 @@ if args.mode == 'run':
 
     # Teste ob die Pfade für CBOW und BM25 existieren
 
-    for p in BM25_PARTIONAL_PATHS:
-        if not os.path.isfile(p):
-            print("Das BM25-Modell existiert noch nicht...")
-            sys.exit(0)
+    if not os.path.isfile(BM25_PARTIONAL_PATHS[0]):
+        print("Das BM25-Modell existiert noch nicht...")
+        sys.exit(0)
 
     if not os.path.isfile(CBOW_STORE_PATH):
         print("Das CBOW-Modell existiert noch nicht...")

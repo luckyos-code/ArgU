@@ -10,8 +10,12 @@ First of all make sure, that you are in the correct directory `.../ArgU/`
 	- Convert args-me.json -> args-me.csv
 2. ` $ python -m argU create -c=all `
 	- Create train file for cbow and bm25
-	- Also create a cbow model and store it
-3. ` $ python -m argU create -c=bm25 `
+	- Create a CBOW model
+	- Create a BM25 Model
+	- Generate a index with cbow and bm25
+3. ` $ python -m argU run `
+	- Busführen
+
 ### Docker
 
 1. ` $ docker build -t argu . `
