@@ -47,7 +47,7 @@ def scores_evaluate(scores_path):
 
             # Entferne Argumente, deren desim < 0 ist
             for (arg, desim_score, sent, sent_magn) in ordered_tuples:
-                if desim_score <= 0.03:
+                if desim_score <= 0.00:
                     continue
 
                 final_score = desim_score + desim_score * abs(sent)

@@ -8,12 +8,12 @@ First of all make sure, that you are in the correct directory `.../ArgU/`
 
 1. ` $ python argU/preprocessing/args_to_csv.py `
 	- Convert args-me.json -> args-me.csv
-2. ` $ python -m argU create -c=all `
+2. ` $ python -m argU index -c=all `
 	- Create train file for cbow and bm25
 	- Create a CBOW model
 	- Create a BM25 Model
 	- Generate a index with cbow and bm25
-3. ` $ python -m argU run `
+3. ` $ python -m argU retrieve `
 	- Busführen
 
 ### Docker
