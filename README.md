@@ -6,7 +6,7 @@ You build a system to support users who directly search for arguments, e.g., by 
 
 1. ` $ docker build -t argu . `
 	- Build the image
-	- Only needed once
+	- Only needed once or after changes on host
 2. ` $ docker run --name argu -d --rm -it argu `
 	- Start the background container
 	- Keeps running in the background until stopped
