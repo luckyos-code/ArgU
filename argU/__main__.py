@@ -12,7 +12,7 @@ from preprocessing.generate_train_csv import generate_cbow_train_file
 from indexing.models import CBOW, BM25Manager
 from indexing.index_csv import create_index, analyze_queries, combine_scores, get_top_args, sentiment_sort_args
 from utils.reader import TrainCSVIterator, FindArgumentIterator
-from preprocessing.tools import machine_model_clean, sentiment_clean
+from utils import queries
 
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 CSV_ARGS_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
@@ -24,9 +24,7 @@ SENTIMENTS_PATH = os.path.join(
     ROOT_PATH, 'argU/sentiment/results/argument_sentiments.csv'
 )
 FOUND_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, 'results.csv')
-QUERIES_PATH = os.path.join(
-    ROOT_PATH, 'argU/sentiment/results/query_sentiments.csv'
-)
+QUERIES_PATH = os.path.join(RESOURCES_PATH, 'topics-automatic-runs-task-1.xml')
 
 bm_25_splits = BM25_STORE_PATH.split('.')
 BM25_PARTIONAL_PATHS = [
@@ -38,8 +36,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('mode', choices=['run', 'create'])
 parser.add_argument('-c', '--create',
                     choices=['all', 'bm25', 'cbow', 'index'], default='all')
-parser.add_argument('-q', '--queries',
-                    choices=['static', 'file'], default='static')
 args = parser.parse_args()
 
 if not os.path.isfile(CSV_ARGS_PATH):
@@ -132,52 +128,32 @@ if args.mode == 'run':
     bm25_manager = BM25Manager.load(BM25_STORE_PATH, mode='meta')
     cbow = CBOW.load(CBOW_STORE_PATH)
 
-    query_ids = []
-    queries = []
-    if args.queries == 'static':
-        queries = [
-            'Donald Trump is bad',
-            'pregnancy is bad'
-        ]
-        query_ids = [i for i, q in enumerate(queries)]
-    else:
-        with open(QUERIES_PATH, 'r', newline='', encoding='utf-8') as f_in:
-            reader = csv.reader(
-                f_in,
-                delimiter=",",
-                quotechar='"',
-                quoting=csv.QUOTE_MINIMAL,
-            )
-            header = next(reader)
+    query_ids, query_texts = queries.read(QUERIES_PATH, start=0, stop=1)
+    query_texts = queries.clean(query_texts)
 
-            for line in reader:
-                query_ids.append(line[0])
-                queries.append(line[1])
-        queries = queries[10:20]
-        query_ids = query_ids[10:20]
-
-    for i, q in enumerate(queries):
-        queries[i] = machine_model_clean(sentiment_clean(q))
-        queries[i] = queries[i].replace('?', '')
-
-    print('\n', queries, '\n')
+    print('\n', query_texts, '\n')
 
     bm25_scores, desim_scores, arg_ids = analyze_queries(
-        queries,
+        query_texts,
         INDEX_STORE_PATH,
         cbow.model,
         bm25_manager.index,
-        max_args=-1,
+        max_args=1000,
     )
 
     # Bestimme den finalen Score
     # Dazu werden beide Scores paarweise zusammengerechnet
     # Zusätzlich kommen Sentiment Score ins Spiel, der zur Sortierung dient
 
-    alpha = 0.5
+    alpha = 0.1
+    top_args = get_top_args(
+        arg_ids,
+        bm25_scores,
+        desim_scores,
+        alpha=alpha,
+        top_n=200,
+    )
 
-    combined_scores = combine_scores(bm25_scores, desim_scores, alpha=0.5)
-    top_args = get_top_args(combined_scores, arg_ids, top_n=20)
     sentiment_sorted_args = sentiment_sort_args(SENTIMENTS_PATH, top_args)
 
     # Speichere die gefundenen Argumente für eine Query in einem Log
@@ -197,15 +173,9 @@ if args.mode == 'run':
             quoting=csv.QUOTE_MINIMAL,
         )
 
-        for id, query, (arg_ids, arg_scores) in zip(query_ids, queries, sentiment_sorted_args):
+        for id, query, (arg_ids, arg_scores) in zip(query_ids, query_texts, sentiment_sorted_args):
             line = [id, query, arg_ids, arg_scores, alpha]
             writer.writerow(line)
 
-    # for id, query, (arg_ids, arg_scores) in zip(query_ids, queries, sentiment_sorted_args):
-    #     print('='*60)
-    #     print(query)
-    #     print('='*60)
-    #     print()
-    #     for i, arg in enumerate(FindArgumentIterator(CSV_ARGS_PATH, arg_ids)):
-    #         print(i, arg.text_raw[:300], '\n')
-    #     print()
+    # Speichere Argumente in dem passenden Output Format
+    # TODO

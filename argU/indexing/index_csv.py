@@ -187,23 +187,36 @@ def combine_scores(bm25_scores, desim_scores, alpha):
     assert bm25_scores.shape == desim_scores.shape
     bms = alpha * bm25_scores
     desims = (1 - alpha) * desim_scores
-    # np.set_printoptions(threshold=sys.maxsize)
-    # print(bms)
-    # print(desims)
-    # print(bms < desims)
-    # relation = sum(bms > desims) / (bms.shape[0] * bms.shape[1])
-    # print(f"Prozentualer Anteil von BMs, die größer als Desim sind: {relation}")
-    return bms + desims
+    influences = (bms >= desims)
+    return bms + desims, influences.flatten().tolist()
 
 
-def get_top_args(combined_scores, arg_ids, top_n=10):
-    results = []
-    for query_scores in combined_scores:
-        top_ids = np.argsort(query_scores)[::-1][:top_n]
-        results.append(
-            (arg_ids[top_ids], query_scores[top_ids])
+def get_top_args(arg_ids, bm25_scores, desim_scores, alpha=0.5, top_n=10):
+
+    top_args_list = []
+    final_scores, influences = combine_scores(bm25_scores, desim_scores, alpha)
+
+    print((
+        f"Influence Statistics\n"
+        f"--------------------\n\n"
+        f"BM25 > Desim: {influences.count(True)} Mal.\n"
+        f"Desim > BM25: {influences.count(False)} Mal.\n\n"
+        f"Desim und BM25 sollten standardmäßig ähnlich sein (Verhältnis = 1.0)\n"
+        f"Verhältnis: {abs(influences.count(True) / influences.count(False))}\n\n"
+    ))
+
+    for bs, ds, fs in zip(bm25_scores, desim_scores, final_scores):
+        top_ids = np.argsort(fs)[::-1][:top_n]
+        top_args_list.append(
+            (
+                arg_ids[top_ids],
+                fs[top_ids],
+                bs[top_ids],
+                ds[top_ids],
+            )
         )
-    return results
+
+    return top_args_list
 
 
 def sentiment_sort_args(SENTIMENTS_PATH, top_args):
@@ -235,7 +248,8 @@ def sentiment_sort_args(SENTIMENTS_PATH, top_args):
     results = []
     for arg_ids, query_sents in zip(top_args, query_sentiments):
         abs_sent = [abs(i) for i in query_sents[0]]
-        pairings = [(i, p[0], p[1]) for i, p in enumerate(zip(arg_ids[1], abs_sent))]
+        pairings = [(i, p[0], p[1])
+                    for i, p in enumerate(zip(arg_ids[1], abs_sent))]
         pairings = sorted(pairings, key=lambda x: (x[2], x[1]), reverse=True)
         indices_order = [i[0] for i in pairings]
         new_arg_ids = [arg_ids[0][i] for i in indices_order]
