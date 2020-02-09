@@ -25,7 +25,7 @@ def collect_scores(path, query_ids, query_texts, top_args, sentiments):
             writer.writerow(line)
 
 
-def scores_evaluate(scores_path, threshold=0.05):
+def scores_evaluate(scores_path, threshold=0.009):
     with open(scores_path, 'r', newline='', encoding='utf-8') as f_in:
         reader = csv.reader(
             f_in,
