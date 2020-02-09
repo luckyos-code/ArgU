@@ -68,7 +68,7 @@ parser.add_argument(
     '-q', '--query_range',
     nargs='+',
     type=int,
-    default=[0, 1],
+    default=[0, 1000],
 )
 
 args = parser.parse_args()
