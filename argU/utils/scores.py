@@ -25,7 +25,7 @@ def collect_scores(path, query_ids, query_texts, top_args, sentiments):
             writer.writerow(line)
 
 
-def scores_evaluate(scores_path):
+def scores_evaluate(scores_path, threshold=0.05):
     with open(scores_path, 'r', newline='', encoding='utf-8') as f_in:
         reader = csv.reader(
             f_in,
@@ -47,7 +47,7 @@ def scores_evaluate(scores_path):
 
             # Entferne Argumente, deren desim < 0 ist
             for (arg, desim_score, sent, sent_magn) in ordered_tuples:
-                if desim_score <= 0.01:
+                if desim_score <= threshold:
                     continue
 
                 final_score = desim_score + desim_score * abs(sent)
@@ -69,6 +69,16 @@ if __name__ == '__main__':
     import os
     import rootpath
     import sys
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-t',
+        '--threshold',
+        default=0.05,
+        type=float,
+    )
+    args = parser.parse_args()
 
     sys.path.append(os.path.join(rootpath.detect(), 'argU'))
 
@@ -78,7 +88,7 @@ if __name__ == '__main__':
     CSV_ARGS_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
     SCORES_PATH = os.path.join(RESOURCES_PATH, 'scores.csv')
 
-    queries_args = scores_evaluate(SCORES_PATH)
+    queries_args = scores_evaluate(SCORES_PATH, threshold=args.threshold)
 
     for (query_id, query_text, args) in queries_args:
         print(f"Query \"{query_text}\" hat noch {len(args)} Argumente\n")
