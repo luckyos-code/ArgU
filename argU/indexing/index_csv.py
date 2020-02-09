@@ -115,13 +115,18 @@ def analyze_queries(queries, index_path, cbow_model, bm25_model,
                             quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         for i, row in tqdm(enumerate(reader)):
-            arg_id, doc_freq, arg_emb, unk, doc_len = [
-                row[0],
-                json.loads(row[1]),
-                np.asarray(json.loads(row[2])),
-                row[3],
-                int(row[4])
-            ]
+            try:
+                arg_id, doc_freq, arg_emb, unk, doc_len = [
+                    row[0],
+                    json.loads(row[1]),
+                    np.asarray(json.loads(row[2])),
+                    row[3],
+                    int(row[4])
+                ]
+            except Exception as e:
+                print(e)
+                print(row[2])
+                continue
 
             try:
                 desim_query_scores = []
