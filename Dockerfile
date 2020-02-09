@@ -30,19 +30,3 @@ COPY ./ ./
 CMD python -m argU index -c=all \
 	&& python -m argU retrieve -n -1 -a 0.1 \
 	&& bash
-### Docker
-
-1. ` $ docker build -t argu . `
-	- Build the image
-	- Only needed once or after changes on host
-2. ` $ docker run --name argu -d --rm -it argu `
-	- Starts the container as a form of background service
-	- Keeps running in the background until stopped
-3. ` $ docker exec -it argu bash `
-	- Access container shell (shell exit command: '` $ exit `)
-	- 'Do your stuff' mode
-	- While the container keeps running:
-		- enter shell as often as you want
-		- changes stay
-4. ` $ docker stop argu `
-	- Stop the container (removes itself)
