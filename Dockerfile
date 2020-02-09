@@ -6,20 +6,20 @@ WORKDIR /ArgU
 COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
+# Nano for testing
+RUN apt-get update \
+	&& apt-get install nano
+
 # Download argsme corpus
 WORKDIR /ArgU/resources
 RUN wget https://zenodo.org/record/3274636/files/argsme.zip \
 	&& unzip argsme.zip \
 	&& rm argsme.zip
 
-# Nano for testing
-RUN apt-get update \
-	&& apt-get install nano
-
 # Convert input to csv
+WORKDIR /ArgU
 COPY ./argU/preprocessing/args_to_csv.py ./argU/preprocessing/args_to_csv.py
-RUN python argU/preprocessing/args_to_csv.py \
-	&& rm args-me.json
+RUN python argU/preprocessing/args_to_csv.py 
 
 # Get the whole app
 WORKDIR /ArgU
