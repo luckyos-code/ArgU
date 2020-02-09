@@ -134,6 +134,8 @@ if args.mode == 'index':
                 print("Das BM25-Modell existiert noch nicht...")
                 sys.exit(0)
 
+        os.remove(MODELS_TRAIN_PATH)
+
         print("Erstelle eine Index Datei...")
         cbow = CBOW.load(CBOW_STORE_PATH)
         bm25_manager = BM25Manager.load(BM25_STORE_PATH)
@@ -146,6 +148,8 @@ if args.mode == 'index':
         )
         del(cbow)
         del(bm25_manager)
+
+        os.remove(BM25_PARTIONAL_PATHS[1])
 
 if args.mode == 'retrieve':
 

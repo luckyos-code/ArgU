@@ -14,7 +14,7 @@ First of all make sure, that you are in the correct directory `.../ArgU/`
 	- Create a BM25 Model
 	- Generate a index with cbow and bm25
 3. ` $ python -m argU retrieve `
-	- Busführen
+    - Generiere die letzte Ausgabedatei als results.txt
 
 ### Docker
 

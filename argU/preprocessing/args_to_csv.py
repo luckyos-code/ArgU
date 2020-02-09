@@ -42,3 +42,5 @@ with open(csv_path, 'w', newline='', encoding='utf-8') as f_out:
         row.append(argument['conclusion'])
 
         csv_writer.writerow(row)
+
+os.remove(json_path)
