@@ -2,6 +2,24 @@
 
 You build a system to support users who directly search for arguments, e.g., by supporting their stance, or by aiding them in building a stance on topics of a general societal interest such as abandonment of plastic bottles, animal experiments, abortion, etc. This subtask targets argumentative conversations. You will retrieve documents from the focused crawl with content from online debate portals (idebate.org, debatepedia.org, debatewise.org) and from Reddit's ChangeMyView. Be sure to retrieve good ''strong'' arguments. Our human assessors will label the retrieved documents manually, both for their general topical relevance, and for argument quality dimensions such as: (1) whether an argumentative text is logically cogent, (2) whether it is rhetorically well-written, and (3) whether it contributes to the users' stance-building process, i.e., somewhat similar to the concept of "utility" (refer to this paper for more information on argument quality 
 
+
+### Docker
+
+1. ` $ docker build -t argu . `
+	- Build the image
+	- Only needed once or after changes on host
+2. ` $ docker run --name argu -d --rm -it argu `
+	- Starts the container as a form of background service
+	- Keeps running in the background until stopped
+3. ` $ docker exec -it argu bash `
+	- Access container shell (shell exit command: '` $ exit `)
+	- 'Do your stuff' mode
+	- While the container keeps running:
+		- enter shell as often as you want
+		- changes stay
+4. ` $ docker stop argu `
+	- Stop the container (removes itself)
+
 ### Commands 
 
 First of all make sure, that you are in the correct directory `.../ArgU/`
@@ -15,23 +33,6 @@ First of all make sure, that you are in the correct directory `.../ArgU/`
 	- Generate a index with cbow and bm25
 3. ` $ python -m argU retrieve -n -1 -a 0.1`
     - Generiere die letzte Ausgabedatei als results.txt
-
-### Docker
-
-1. ` $ docker build -t argu . `
-	- Build the image
-	- Only needed once or after changes on host
-2. ` $ docker run --name argu -d --rm -it argu `
-	- Start the background container
-	- Keeps running in the background until stopped
-3. ` $ docker exec -it argu bash `
-	- Access container shell (shell exit command: '` $ exit `)
-	- 'Do your stuff' mode
-	- While the container keeps running:
-		- enter shell as often as you want
-		- changes stay
-4. ` $ docker stop argu `
-	- Stop the container (removes itself)
 
 ### Task Formate und Abgabe
 
