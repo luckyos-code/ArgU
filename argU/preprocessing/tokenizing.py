@@ -5,9 +5,11 @@ import rootpath
 
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
-STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
+STOPWORDS_PATH = os.path.join(ROOT_PATH, 'stopwords_eng.txt')
 
 # nltk.download()
+
+
 def tokenizing_q(query: str):
     punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
     stopwords = open(STOPWORDS_PATH, "r").read().split("\n")
@@ -31,10 +33,10 @@ def tokenizing_q(query: str):
                     # if l.antonyms():
                     #     antonyms.append(l.antonyms()[0].name())
             for s, syno in enumerate(synonyms):
-                syno.replace("_"," ")
-                synonyms[s]= syno
+                syno.replace("_", " ")
+                synonyms[s] = syno
             for s, syno in enumerate(synonyms):
-                for j,syno2 in enumerate(synonyms):
+                for j, syno2 in enumerate(synonyms):
                     if j > s:
                         if syno2 == syno:
                             synonyms[j] = ""

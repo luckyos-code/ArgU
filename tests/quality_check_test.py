@@ -12,7 +12,7 @@ from preprocessing.tools import clean_text, model_text
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 CSV_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
-STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
+STOPWORDS_PATH = os.path.join(ROOT_PATH, 'stopwords_eng.txt')
 
 
 # def split_concatenated_words(text):

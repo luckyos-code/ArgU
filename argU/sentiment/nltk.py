@@ -6,7 +6,9 @@ from nltk.tag import pos_tag
 from nltk.tokenize import word_tokenize
 from nltk import FreqDist, classify, NaiveBayesClassifier, download as nltk_download
 
-import re, string, random
+import re
+import string
+import random
 
 
 def get_nltk_data():
@@ -90,8 +92,10 @@ def run(rows, mode):
     freq_dist_pos = FreqDist(all_pos_words)
     print(freq_dist_pos.most_common(10))
 
-    positive_tokens_for_model = get_tweets_for_model(positive_cleaned_tokens_list)
-    negative_tokens_for_model = get_tweets_for_model(negative_cleaned_tokens_list)
+    positive_tokens_for_model = get_tweets_for_model(
+        positive_cleaned_tokens_list)
+    negative_tokens_for_model = get_tweets_for_model(
+        negative_cleaned_tokens_list)
 
     positive_dataset = [
         (tweet_dict, "Positive") for tweet_dict in positive_tokens_for_model

@@ -24,8 +24,8 @@ SENTIMENTS_PATH = os.path.join(
     ROOT_PATH, 'argU/sentiment/results/argument_sentiments.csv'
 )
 FOUND_ARGUMENTS_PATH = os.path.join(RESOURCES_PATH, 'scores.csv')
-RESULTS_PATH = os.path.join(RESOURCES_PATH, 'results.txt')
-QUERIES_PATH = os.path.join(RESOURCES_PATH, 'topics-automatic-runs-task-1.xml')
+RESULTS_PATH = os.path.join(ROOT_PATH, 'run.txt')
+QUERIES_PATH = os.path.join(ROOT_PATH, 'topics.xml')
 
 bm_25_splits = BM25_STORE_PATH.split('.')
 BM25_PARTIONAL_PATHS = [

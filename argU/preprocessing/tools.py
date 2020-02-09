@@ -16,7 +16,7 @@ special_tokens = [
 
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
-STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
+STOPWORDS_PATH = os.path.join(ROOT_PATH, 'stopwords_eng.txt')
 
 
 def url_cleaning(text):
