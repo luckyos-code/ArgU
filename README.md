@@ -11,7 +11,7 @@ You build a system to support users who directly search for arguments, e.g., by 
 2. ` $ docker run --name argu -d --rm -it argu `
 	- Starts the container as a form of background service
 	- Keeps running in the background until stopped
-3. ` $ docker exec -it argu bash `
+3. ` $ docker attach argu `
 	- Access container shell (shell exit command: '` $ exit `)
 	- 'Do your stuff' mode
 	- While the container keeps running:
