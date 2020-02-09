@@ -15,6 +15,12 @@ from utils.reader import TrainCSVIterator, FindArgumentIterator
 from utils import queries, scores
 
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
+if not os.path.isdir(RESOURCES_PATH):
+    os.mkdir(RESOURCES_PATH)
+    print('Resource dir created...')
+else:
+    print('Resource dir already exists...')
+
 CSV_ARGS_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
 MODELS_TRAIN_PATH = os.path.join(RESOURCES_PATH, 'train.csv')
 CBOW_STORE_PATH = os.path.join(RESOURCES_PATH, 'cbow.model')
@@ -37,7 +43,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument(
     'mode',
-    choices=['index', 'retrieve'],
+    choices=['index', 'retrieve', 'collect'],
     help="Erstelle einen Index oder erhalte Argumente",
 )
 
@@ -214,7 +220,7 @@ if args.mode == 'retrieve':
         top_args,
         sentiments,
     )
-
+if args.mode == 'retrieve' or args.mode == 'collect':
     # Speichere Argumente in dem passenden Output Format
     queries_args = scores.scores_evaluate(FOUND_ARGUMENTS_PATH)
 
