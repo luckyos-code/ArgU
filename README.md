@@ -3,7 +3,7 @@
 You build a system to support users who directly search for arguments, e.g., by supporting their stance, or by aiding them in building a stance on topics of a general societal interest such as abandonment of plastic bottles, animal experiments, abortion, etc. This subtask targets argumentative conversations. You will retrieve documents from the focused crawl with content from online debate portals (idebate.org, debatepedia.org, debatewise.org) and from Reddit's ChangeMyView. Be sure to retrieve good ''strong'' arguments. Our human assessors will label the retrieved documents manually, both for their general topical relevance, and for argument quality dimensions such as: (1) whether an argumentative text is logically cogent, (2) whether it is rhetorically well-written, and (3) whether it contributes to the users' stance-building process, i.e., somewhat similar to the concept of "utility" (refer to this paper for more information on argument quality 
 
 
-### Docker
+## Docker
 
 1. ` $ docker build -t argu . `
 	- Build the image
@@ -20,21 +20,38 @@ You build a system to support users who directly search for arguments, e.g., by 
 4. ` $ docker stop argu `
 	- Stop the container (removes itself)
 
-### Commands 
+## Command Line
 
-First of all make sure, that you are in the correct directory `.../ArgU/`
+### Get Requirements
+
+1. In `.../ArgU/` run: ` $ pip install -r requirements.txt `
+2. Download [Argsme Corpus](https://zenodo.org/record/3274636/files/argsme.zip) and extract to `.../ArgU/resources/`
+
+### How to Run 
+
+First of all make sure every requirement is met (see Get Requirements section)
 
 1. ` $ python argU/preprocessing/args_to_csv.py `
 	- Convert args-me.json -> args-me.csv
-2. ` $ python -m argU index -c=all `
+2. ` $ python -m argU index -d -c all `
 	- Create train file for cbow and bm25
 	- Create a CBOW model
 	- Create a BM25 Model
 	- Generate a index with cbow and bm25
-3. ` $ python -m argU retrieve -n -1 -a 0.1`
+3. ` $ python -m argU retrieve `
     - Generiere die letzte Ausgabedatei als results.txt
 
-### Task Formate und Abgabe
+### Submodul Excecution
+
+* For individual moduls, cd into directories and run ``` $ python -m [modulname] ```
+
+## WIP Built With
+
+* [Docker](https://www.docker.com/) - Used to build and run
+* [Google Cloud Natural Language API](https://cloud.google.com/natural-language/) - Used for sentiment analysis
+* [Natural Language Toolkit](https://www.nltk.org) - (Deprecated) Used to train sentiment analysis model
+
+## Task Formate und Abgabe
 
 <b>qid</b>: The topic number.<br>
 <b>Q0</b>: Unused, should always be Q0.<br>
@@ -53,24 +70,11 @@ An example run for task 1 is:
 
 [Topics Queries XML](resources/topics-automatic-runs-task-1.xml)
 
-### Pipenv - Basics
-* Install Pipenv: ``` $ pip install pipenv ```
-* Install dependencies: ``` $ pipenv install ```
-* Run command in environment: ``` $ pipenv run <command> ``` (e.g. ``` $ pipenv run python my_project.py ```)
----
-* Add package to dependencies: ``` $ pipenv install <package> ```
-* Remove package from dependencies: ``` $ pipenv uninstall <package> ```
-* Launch Pipenv environment shell: ``` $ pipenv shell ``` (test: ``` $ python --version ```; exit command: ``` $ exit ```)
-
-### Modul excecution
-* Main Program: ``` $ python -m argU ```
-* For individual moduls, cd into directories and run ``` $ python -m [modulname] ```
-
-### Relevant Files
+## Relevant Files
 * [arguments](https://zenodo.org/record/3274636#.XeAyUi03v4a)
 * [queries](https://github.com/webis-de/SIGIR-19/blob/master/Data/topics.csv)
 * [training data](https://git.informatik.uni-leipzig.de/lg80beba/argument-quality-evaluation/tree/master/Dataset%20Final%20Study)
 * [args frontend](https://git.webis.de/args)
 
-### Dinge die man testen kann
+## Possible Test Cases
 * Debatten: existieren davor weitere Argumente? Ist der erste Eintrag immer KEIN Argument?
