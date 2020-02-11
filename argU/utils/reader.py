@@ -1,10 +1,20 @@
 import csv
+import os
+import sys
 import numpy as np
-from preprocessing import tools
 from numpy import linalg as LA
 from sklearn.preprocessing import normalize
-from preprocessing.tools import machine_model_clean
+import rootpath
 from tqdm import tqdm
+
+try:
+    sys.path.append(os.path.join(rootpath.detect()))
+    import setup
+    from argU.preprocessing import tools
+except Exception as e:
+    print("Project intern dependencies could not be loaded...")
+    print(e)
+    sys.exit(0)
 
 
 def read_csv(path, max_rows=-1, delimiter=','):
@@ -52,13 +62,9 @@ class Argument:
         self.debate_id = row[2]
         self.text_raw = row[0]
         self.stance = row[1]
-        self.previous_argument = row[3]
-        self.next_argument = row[8]
-
-    @property
-    def text_nl(self):
-        """Natural Language Text"""
-        return tools.natural_language_clean(self.text_raw)
+        self.text_nl = tools.natural_language_clean(self.text_raw)
+        # self.previous_argument = row[3]
+        # self.next_argument = row[8]
 
     @property
     def text_machine(self):
@@ -131,42 +137,34 @@ class ArgumentCbowIterator:
 class ArgumentIterator:
     """Iterator für alle Argument Objekte"""
 
-    def __init__(self, path, max_args=-1):
-        self.path = path
+    def __init__(self, max_args=-1):
         self.max_args = max_args
 
     def __iter__(self):
-        for argument in read_arguments(self.path, self.max_args):
+        for argument in read_arguments(setup.ARGS_ME_CSV_PATH, self.max_args):
             yield argument
 
 
-class TrainCSVIterator:
-    def __init__(self, train_cbow_path, only_texts=False, max_rows=-1):
-        self.train_cbow_path = train_cbow_path
+class TrainArgsIterator:
+    def __init__(self, only_texts=False, max_args=-1):
         self.only_texts = only_texts
-        self.max_rows = max_rows
+        self.max_args = max_args
 
     def __iter__(self):
-        with open(self.train_cbow_path, 'r', encoding='utf-8') as f_in:
-            reader = csv.reader(
-                f_in,
-                delimiter='|',
-                quotechar='"',
-            )
+        with open(
+            setup.TRAIN_ARGS_PATH, 'r', newline='', encoding='utf-8'
+        ) as f_in:
+            reader = csv.reader(f_in, **setup.TRAIN_ARGS_CONFIG)
 
-            for i, row in enumerate(reader):
-                if len(row) <= 1:
-                    continue
-                if row[0] == '' or row[1] == '':
-                    continue
+            for i, (arg_id, arg_text) in enumerate(reader):
 
-                row[1] = row[1].strip().split()
+                arg_text = arg_text.strip().split()
                 if self.only_texts:
-                    yield row[1]
+                    yield arg_text
                 else:
-                    yield row
+                    yield (arg_id, arg_text)
 
-                if (i + 1) == self.max_rows:
+                if (i + 1) == self.max_args:
                     break
 
 
@@ -197,17 +195,29 @@ class FindArgumentIterator:
         Argument
     """
 
-    def __init__(self, path, ids):
-        self.path = path
-        self.ids = ids
+    def __init__(self, ids, raw_texts_only=False):
+        self.ids = set(ids)
+        self.raw_texts_only = raw_texts_only
 
     def __iter__(self):
-        found_arguments = 0
-        for argument in read_arguments(self.path, -1):
-            if argument.id in self.ids:
-                yield argument
+        if not self.raw_texts_only:
+            for argument in read_arguments(setup.ARGS_ME_CSV_PATH):
+                if argument.id in self.ids:
+                    yield argument
 
-                found_arguments += 1
-                if found_arguments == len(self.ids):
-                    return
+                    self.ids.remove(argument.id)
+                    if len(self.ids) == 0:
+                        return
+        else:
+            for row in read_csv(setup.ARGS_ME_CSV_PATH):
+                id = row[9]
+                text = row[0]
+                if id in self.ids:
+                    yield (id, text)
+
+                    self.ids.remove(id)
+                    if len(self.ids) == 0:
+                        return
+
         print('Not all arguments found...')
+        return self.ids

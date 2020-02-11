@@ -22,13 +22,14 @@ class BM25:
         self.doc_len = []
         self.arg_ids = []
 
-        nd = self._initialize(iterable_corpus)
-        self._calc_idf(nd)
+        if iterable_corpus is not None:
+            nd = self._initialize(iterable_corpus)
+            self._calc_idf(nd)
 
     def _initialize(self, iterable_corpus):
         nd = {}  # word -> number of documents with word
         num_doc = 0
-        for id, document in tqdm(iterable_corpus):
+        for (id, document) in tqdm(iterable_corpus):
             self.corpus_size += 1
             self.arg_ids.append(id)
             self.doc_len.append(len(document))
@@ -66,12 +67,11 @@ class BM25:
 
 
 class BM25Okapi(BM25):
-    def __init__(self, iterable_corpus=None, tokenizer=None, k1=1.5, b=0.75, epsilon=0.25):
-        self.k1 = k1
-        self.b = b
-        self.epsilon = epsilon
-        if iterable_corpus is not None:
-            super().__init__(iterable_corpus, tokenizer)
+    def __init__(self, iterable_corpus=None, tokenizer=None):
+        self.k1 = 1.5
+        self.b = 0.75
+        self.epsilon = 0.25
+        super().__init__(iterable_corpus, tokenizer)
 
     def _calc_idf(self, nd):
         """

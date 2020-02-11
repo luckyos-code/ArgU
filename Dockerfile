@@ -27,6 +27,6 @@ COPY ./ ./
 
 # Run the necessary steps
 # Keeps container running as bash
-CMD python -m argU index -c=all \
-	&& python -m argU retrieve -n -1 -a 0.1 \
+CMD python -m argU index -d -c all \
+	&& python -m argU retrieve  \
 	&& bash

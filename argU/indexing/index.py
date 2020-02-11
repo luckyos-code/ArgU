@@ -9,86 +9,66 @@ import sys
 import json
 import csv
 import warnings
+import traceback
 import math
 import numpy as np
 from tqdm import tqdm
 from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler, normalize
 
-ROOT_PATH = rootpath.detect()
-sys.path.append(os.path.join(rootpath.detect(), 'argU'))
-
-from indexing.models import BM25Manager, CBOW, DualEmbedding
-from utils.reader import TrainCSVIterator, Argument
-from utils.utils import path_not_found_exit
-from utils.beautiful import print_argument_texts
-
 warnings.filterwarnings("error")
 
-# RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
-# TRAIN_PATH = os.path.join(RESOURCES_PATH, 'cbow_train.csv')
-# CSV_PATH = os.path.join(RESOURCES_PATH, 'args-me.csv')
-# BM25_PATH = os.path.join(RESOURCES_PATH, 'bm25.json')
-# CBOW_MODEL_PATH = os.path.join(RESOURCES_PATH, 'cbow.model')
-# INDEX_PATH = os.path.join(RESOURCES_PATH, 'index.csv')
-# RESULT_LOG_PATH = os.path.join(RESOURCES_PATH, 'result.log.csv')
-
-# path_not_found_exit([
-#     RESOURCES_PATH, TRAIN_PATH, CSV_PATH,
-#     BM25_PATH, CBOW_MODEL_PATH, INDEX_PATH,
-# ])
-
-
-# parser = argparse.ArgumentParser()
-# parser.add_argument('mode', choices=['load', 'train', 'read'])
-# args = parser.parse_args()
+try:
+    sys.path.append(os.path.join(rootpath.detect()))
+    import setup
+    from argU.indexing.models import DualEmbedding
+    from argU.utils.beautiful import print_argument_texts
+    from argU.utils.reader import TrainArgsIterator
+    from argU.utils.reader import Argument
+    from argU.utils.utils import path_not_found_exit
+except Exception as e:
+    print("Project intern dependencies could not be loaded...")
+    print(e)
+    traceback.print_exc(file=sys.stdout)
+    sys.exit(0)
 
 
-def create_index(index_path, train_path, cbow_model, bm25_model, max_rows=-1):
+def create(cbow_model, bm25_model, max_args=-1):
     """Erstelle einen neuen Index, der in einer CSV gespeichert wird
 
     Args:
-        index_path (:obj:`str`): Speicherort Index
-        train_path (:obj:`str`): Trainingsdatei für Modelle
         cbow_model (:obj:`Word2Vec`): Embedding Modell
         bm25_model (:obj:`BM25Kapi`): BM25 Modell
-        max_rows (int, optional): Anzahl der Argumente, die indiziert
+        max_args (int, optional): Anzahl der Argumente, die indiziert
             werden sollen
     """
 
     vector_size = cbow_model.vector_size
 
-    with open(index_path, 'w', encoding='utf-8', newline='') as f_out:
-        writer = csv.writer(
-            f_out,
-            delimiter='|',
-            quotechar='"',
-            quoting=csv.QUOTE_MINIMAL,
-        )
+    with open(setup.INDEX_PATH, 'w', encoding='utf-8', newline='') as f_out:
+        writer = csv.writer(f_out, **setup.INDEX_CONFIG)
 
-        for row in tqdm(TrainCSVIterator(train_path, max_rows=max_rows)):
+        for row in tqdm(TrainArgsIterator(max_args=max_args)):
             arg_id, arg_text = row
-            index = bm25_model.arg_ids.index(arg_id)
-            doc_frec = bm25_model.doc_freqs[index]
-            doc_len = bm25_model.doc_len[index]
+            bm25_index = bm25_model.arg_ids.index(arg_id)
+            doc_frec = bm25_model.doc_freqs[bm25_index]
+            doc_len = bm25_model.doc_len[bm25_index]
+
             arg_emb, unk = Argument.to_vec(arg_text, cbow_model, vector_size)
 
             writer.writerow([
                 arg_id,
                 json.dumps(doc_frec),
-                arg_emb.tolist(),
-                unk,
+                [round(i, 14) for i in arg_emb.tolist()],
                 doc_len,
             ])
 
 
-def analyze_queries(queries, index_path, cbow_model, bm25_model,
-                    max_args=-1):
+def collect_arguments(queries, cbow_model, bm25_model, max_args=-1):
     """ Lade den Index und werte die Argumente abhängig vond er Query aus
 
     Args:
         queries (:obj:`list` of :obj:`str`): Eingaben, nach denen gesucht werden soll
-        index_csv_path (:obj:`str`): Dateipfad zum Index CSV
         cbow_model (:obj:`Word2Vec`): Word Embedding Modell
         bm25_model (:obj:`BM25Kapi`): BM25 Index
         alpha (float): Einfluss BM25 und Word Embedding
@@ -104,49 +84,50 @@ def analyze_queries(queries, index_path, cbow_model, bm25_model,
     # ariane staudte <333333
 
     dual_embedding = DualEmbedding(cbow_model)
-    dual_embedding.build()
+    processed_queries = dual_embedding.get_processed_queries(queries)
 
     bm25_scores = []
     desim_scores = []
     arg_ids = []
 
-    with open(index_path, 'r', encoding='utf-8', newline='') as f_in:
-        reader = csv.reader(f_in, delimiter='|',
-                            quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    with open(setup.INDEX_PATH, 'r', encoding='utf-8', newline='') as f_in:
+        reader = csv.reader(f_in, **setup.INDEX_CONFIG)
 
         for i, row in tqdm(enumerate(reader)):
             try:
-                arg_id, doc_freq, arg_emb, unk, doc_len = [
+                arg_id, doc_freq, arg_emb, doc_len = [
                     row[0],
                     json.loads(row[1]),
                     np.asarray(json.loads(row[2])),
-                    row[3],
-                    int(row[4])
+                    int(row[3])
                 ]
             except Exception as e:
                 print(e)
-                print(row[2])
+                print("\t> Folgende Zeile konnte nicht verarbeitet werden:")
+                print("\t>", row)
                 continue
 
             try:
-                desim_query_scores = []
-                bm25_query_scores = []
+                desim_queries_scores = []
+                bm25_queries_scores = []
 
-                for query in queries:
-                    query = query.split()
-                    desim_query_scores.append(
-                        dual_embedding.desim(query, arg_emb)
+                for query_terms, query_matrix in processed_queries:
+
+                    desim_query_score = dual_embedding.desim(
+                        query_matrix, arg_emb
                     )
-                    bm25_query_scores.append(
-                        bm25_model.get_single_score(
-                            query,
-                            doc_freq,
-                            doc_len,
-                        )
+                    bm25_query_score = bm25_model.get_single_score(
+                        query_terms,
+                        doc_freq,
+                        doc_len,
                     )
+
+                    desim_queries_scores.append(desim_query_score)
+                    bm25_queries_scores.append(bm25_query_score)
+
                 arg_ids.append(arg_id)
-                bm25_scores.append(bm25_query_scores)
-                desim_scores.append(desim_query_scores)
+                bm25_scores.append(bm25_queries_scores)
+                desim_scores.append(desim_queries_scores)
 
             except RuntimeWarning as e:
                 print(arg_id, e)
@@ -160,32 +141,37 @@ def analyze_queries(queries, index_path, cbow_model, bm25_model,
         desim_scores = np.array(desim_scores)
         arg_ids = np.asarray(arg_ids)
 
-        print('BM25 Scores: ', bm25_scores.shape)
+        print('\nBM25 Scores: ', bm25_scores.shape)
         print('Desim Scores: ', desim_scores.shape)
-        print('Arg IDs: ', arg_ids.shape)
-        print()
+        print('Arg IDs: ', arg_ids.shape, '\n')
         print(f'Min BM25: {bm25_scores.min()}')
         print(f'Max BM25: {bm25_scores.max()}')
         print(f'Min Desim: {desim_scores.min()}')
-        print(f'Max Desim: {desim_scores.max()}')
+        print(f'Max Desim: {desim_scores.max()}\n')
 
-        bm25_norm = np.linalg.norm(bm25_scores, axis=0)
-        bm25_norm[bm25_norm == 0] = 0.0001
-        desim_norm = np.linalg.norm(desim_scores, axis=0)
-        desim_norm[desim_norm == 0] = 0.0001
+        bm25_norm = normalize(bm25_scores, norm='max', axis=0)
+        desim_norm = normalize(desim_scores, norm='max', axis=0)
 
-        bm25_scores = np.transpose(bm25_scores / bm25_norm)
-        desim_scores = np.transpose(desim_scores / desim_norm)
+        # bm25_norm = np.linalg.norm(bm25_scores, axis=0)
+        # bm25_norm[bm25_norm == 0] = 0.0001
+        # desim_norm = np.linalg.norm(desim_scores, axis=0)
+        # desim_norm[desim_norm == 0] = 0.0001
 
-        print(f'norm Min BM25: {bm25_scores.min()}')
-        print(f'norm Max BM25: {bm25_scores.max()}')
-        print(f'norm Min Desim: {desim_scores.min()}')
-        print(f'norm Max Desim: {desim_scores.max()}')
+        # bm25_scores = np.transpose(bm25_scores / bm25_norm)
+        # desim_scores = np.transpose(desim_scores / desim_norm)
 
-        print(f'Shape BM25: {bm25_scores.shape}')
-        print(f'Shape Desim: {desim_scores.shape}\n')
+        print(f'norm Min BM25: {bm25_norm.min()}')
+        print(f'norm Max BM25: {bm25_norm.max()}')
+        print(f'norm Min Desim: {desim_norm.min()}')
+        print(f'norm Max Desim: {desim_norm.max()}\n')
 
-        return (bm25_scores, desim_scores, arg_ids)
+        print(f'Shape BM25: {bm25_norm.shape}')
+        print(f'Shape Desim: {desim_norm.shape}\n')
+
+        bm25_norm = np.transpose(bm25_norm)
+        desim_norm = np.transpose(desim_norm)
+
+        return arg_ids, bm25_norm, desim_norm
 
 
 def combine_scores(bm25_scores, desim_scores, alpha):
@@ -206,8 +192,8 @@ def get_top_args(arg_ids, bm25_scores, desim_scores, alpha=0.5, top_n=10):
         f"--------------------\n\n"
         f"BM25 > Desim: {influences.count(True)} Mal.\n"
         f"Desim > BM25: {influences.count(False)} Mal.\n\n"
-        f"Desim und BM25 sollten standardmäßig ähnlich sein (Verhältnis = 1.0)\n"
-        f"Verhältnis: {abs(influences.count(True) / influences.count(False))}\n\n"
+        # f"Desim und BM25 sollten standardmäßig ähnlich sein (Verhältnis = 1.0)\n"
+        # f"Verhältnis: {abs(influences.count(True) / influences.count(False))}\n\n"
     ))
 
     for bs, ds, fs in zip(bm25_scores, desim_scores, final_scores):
@@ -224,14 +210,11 @@ def get_top_args(arg_ids, bm25_scores, desim_scores, alpha=0.5, top_n=10):
     return top_args_list
 
 
-def get_sentiments(SENTIMENTS_PATH, top_args):
-    with open(SENTIMENTS_PATH, 'r', newline='', encoding='utf-8') as f_in:
-        reader = csv.reader(
-            f_in,
-            delimiter=",",
-            quotechar='"',
-            quoting=csv.QUOTE_MINIMAL,
-        )
+def get_sentiments(top_args):
+    with open(
+        setup.SENTIMENTS_PATH, 'r', newline='', encoding='utf-8'
+    ) as f_in:
+        reader = csv.reader(f_in, **setup.SENTIMENTS_CONFIG)
         header = next(reader)
 
         sentiments = {}
@@ -244,8 +227,9 @@ def get_sentiments(SENTIMENTS_PATH, top_args):
         sentiment_scores = []
         sentiment_magnitudes = []
         for id in arg_ids[0]:
-            sentiment_scores.append(sentiments.get(id, (0, 0))[0])
-            sentiment_magnitudes.append(sentiments.get(id, (0, 0))[1])
+            s = sentiments.get(id, (0, 0))
+            sentiment_scores.append(s[0])
+            sentiment_magnitudes.append(s[1])
         query_sentiments.append(
             (sentiment_scores, sentiment_magnitudes)
         )

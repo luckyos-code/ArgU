@@ -3,19 +3,24 @@ import sys
 import rootpath
 import xml.etree.ElementTree as ET
 
-ROOT_PATH = rootpath.detect()
-sys.path.append(os.path.join(ROOT_PATH, 'argU'))
+try:
+    sys.path.append(os.path.join(rootpath.detect()))
+    import setup
+    from argU.preprocessing.tools import machine_model_clean
+    from argU.preprocessing.tools import sentiment_clean
+except Exception as e:
+    print("Project intern dependencies could not be loaded...")
+    print(e)
+    sys.exit(0)
 
-from preprocessing.tools import machine_model_clean, sentiment_clean
 
-
-def read(file_path, start=-1, stop=-1):
+def read(start=-1, stop=-1):
     """Erstelle 2 Listen mit IDs und topics der jeweiligen queries"""
 
     query_ids = []
     query_texts = []
 
-    tree = ET.parse(file_path)
+    tree = ET.parse(setup.TOPICS_PATH)
     topics = tree.getroot()
 
     for topic in topics:

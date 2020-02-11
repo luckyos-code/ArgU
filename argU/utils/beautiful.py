@@ -1,4 +1,4 @@
-from utils.reader import FindArgumentIterator
+from argU.utils.reader import FindArgumentIterator
 
 
 def print_argument_texts(ids, path, print_full_texts=False, only_original=True):
