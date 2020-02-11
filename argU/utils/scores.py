@@ -30,7 +30,7 @@ def collect_scores(query_ids, query_texts, top_args, sentiments):
             writer.writerow(line)
 
 
-def evaluate(threshold=0.009):
+def evaluate(threshold=0.009, alpha=None):
     with open(setup.SCORES_PATH, 'r', newline='', encoding='utf-8') as f_in:
         reader = csv.reader(f_in, **setup.SCORES_CONFIG)
 
@@ -48,7 +48,10 @@ def evaluate(threshold=0.009):
                     continue
 
                 # sent_score = fs + fs * abs(sent)
-                sent_score = fs
+                if alpha is not None:
+                    sent_score = alpha * bs + (1 - alpha) * ds
+                else:
+                    sent_score = fs
                 sorted_args.append(
                     (arg_id, sent_score, fs, sent, sent_m)
                 )
@@ -86,7 +89,7 @@ if __name__ == '__main__':
         print(f"Query \"{query_text}\" hat noch {len(args)} Argumente\n")
 
         arg_ids = [arg[0] for arg in args]
-        arg_ids = arg_ids[:20]
+        arg_ids = arg_ids[:30]
         print(arg_ids)
 
         arg_texts = dict()
@@ -95,5 +98,5 @@ if __name__ == '__main__':
 
         for arg_id in arg_ids:
             print(arg_id)
-            print(f"\t > {arg_texts.get(arg_id, 'NOT FOUND')[:150]}")
+            print(f"\t > {arg_texts.get(arg_id, 'NOT FOUND')[:250]}")
         print(f"{'='*50}\n")

@@ -14,7 +14,7 @@ except Exception as e:
     sys.exit(0)
 
 
-def draw_query_scores():
+def draw_query_scores(alpha=None):
 
     with open(setup.SCORES_PATH, 'r', newline='', encoding='utf-8') as f_in:
         reader = csv.reader(f_in, **setup.SCORES_CONFIG)
@@ -30,7 +30,10 @@ def draw_query_scores():
             sents = []
 
             for (_, fs, bs, ds, sent, sent_m) in ordered_tuples:
-                final.append(fs)
+                if alpha is None:
+                    final.append(fs)
+                else:
+                    final.append(alpha * bs + (1 - alpha) * ds)
                 bm25.append(bs)
                 desim.append(ds)
                 sents.append(sent)
@@ -48,4 +51,4 @@ def draw_query_scores():
 
 
 if __name__ == '__main__':
-    draw_query_scores()
+    draw_query_scores(alpha=None)

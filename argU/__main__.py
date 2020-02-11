@@ -19,19 +19,6 @@ except Exception as e:
     print(e)
     sys.exit(0)
 
-DEBUG = True
-
-if DEBUG:
-    train_args = 20000
-    method = 'ulT1DetroitnitzCbowBm25Sentiments'
-else:
-    train_args = -1
-    method = 'method'
-
-# from indexing.index_csv import create_index, analyze_queries, combine_scores, get_top_args, get_sentiments
-# from utils.reader import TrainCSVIterator, FindArgumentIterator
-# from utils import queries, scores
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
@@ -74,8 +61,21 @@ parser.add_argument(
     action='store_true',
 )
 
+parser.add_argument(
+    '--debug',
+    action='store_true',
+)
+
 args = parser.parse_args()
 print(f"Args: {args}")
+
+if args.debug:
+    train_args = 20000
+    method = 'ulT1DetroitnitzCbowBm25Sentiments'
+else:
+    train_args = -1
+    method = 'method'
+
 
 # if len(args.query_range) != 2 or args.query_range[0] < 0 or args.query_range[0] >= args.query_range[1]:
 #     print("Query Range fehlerhaft...")

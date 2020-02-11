@@ -226,7 +226,10 @@ class DualEmbedding:
                 if term in model.wv:
                     matrix[i] = model.wv[term]
                 else:
-                    unk += 1
+                    if term.lower() in model.wv:
+                        matrix[i] = model.wv[term.lower()]
+                    else:
+                        unk += 1
             print(f"Query {j}: {unk} von {len(terms)} Wörtern sind unbekannt")
             processed_queries.append(
                 (terms, matrix)
@@ -245,7 +248,7 @@ class DualEmbedding:
             float: dual embedding similarity
         """
 
-        cos_sims = distance.cdist(
+        cos_sims = 1 - distance.cdist(
             query_matrix,
             np.expand_dims(arg_emb, axis=0),
             'cosine'
