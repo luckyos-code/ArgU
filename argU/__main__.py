@@ -19,7 +19,7 @@ except Exception as e:
     print(e)
     sys.exit(0)
 
-DEBUG = False
+DEBUG = True
 
 if DEBUG:
     train_args = 20000

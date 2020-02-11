@@ -178,6 +178,9 @@ class BM25Manager:
             'avgdl': self.index.avgdl,
         }
 
+        with open(setup.BM25_META_PATH, 'w') as f_out:
+            json.dump(f_out)
+
         with open(
             setup.BM25_DOCS_PATH, 'w', newline='', encoding='utf-8'
         ) as f_out:
@@ -199,18 +202,17 @@ class BM25Manager:
 class DualEmbedding:
     def __init__(self, model_in):
         self.model_in = model_in
-        self.model_out = self.__init_model_out()
         self.vector_size = model_in.trainables.layer1_size
+        self.model_out = self.__init_model_out()
 
     def __init_model_out(self):
         """Erstelle KeyVectors für w_IN und w_OUT"""
-
-        self.vector_size = self.model_in.trainables.layer1_size
 
         model_out = KeyedVectors(self.vector_size)
         model_out.vocab = self.model_in.wv.vocab
         model_out.index2word = self.model_in.wv.index2word
         model_out.vectors = self.model_in.trainables.syn1neg
+        return model_out
 
     def get_processed_queries(self, queries, q_type='in'):
         model = self.model_in if q_type == 'in' else self.model_out

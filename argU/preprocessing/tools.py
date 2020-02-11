@@ -167,7 +167,7 @@ def term_cleaning(text):
             continue
 
         # Weitere URLs, die vorher noch nicht abgefangen wurden
-        if '.com' in term:
+        if '.com' in term or 'www.' in term or '.org' in term:
             term = URL_TOKEN
 
         # Apostrophe korrigieren
