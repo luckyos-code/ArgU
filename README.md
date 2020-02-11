@@ -49,9 +49,17 @@ First of all make sure every requirement is met (see Get Requirements section)
 
 ## Documentation
 
-### (WIP) Workflow
-
 ### (WIP) Report
+
+(Written in German)
+
+### Workflow
+
+![doc/workflow-diagram.png](doc/workflow-diagram.png "workflow-diagram")
+
+### (WIP) Evaluation
+
+#### (WIP) Precision
 
 ### Modules
 
@@ -110,7 +118,7 @@ With:
 * qid: The topic number.
 * Q0: Unused, should always be Q0.
 * doc: The document id returned by your system for the topic qid:
-	* For subtask (1): Use the official args-me id.
+	* For **subtask (1)**: Use the official args-me id.
 * rank: The rank the document is retrieved at.
 * score: The score (integer or floating point) that generated the ranking. The score must be in descending (non-increasing) order. It is important to handle tied scores. (trec_eval sorts documents by the score values and not your rank values.)
 * tag: A tag that identifies your group and the method you used to produce the run.
