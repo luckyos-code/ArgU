@@ -179,7 +179,7 @@ class BM25Manager:
         }
 
         with open(setup.BM25_META_PATH, 'w') as f_out:
-            json.dump(f_out)
+            json.dump(meta_payload, f_out)
 
         with open(
             setup.BM25_DOCS_PATH, 'w', newline='', encoding='utf-8'
