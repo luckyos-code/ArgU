@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     if(not collection_exists(coll_args) or not collection_exists(coll_trans)):
         print('Init args collection...')
-        init_db(coll_args, coll_trans, args_path=args.input)
+        init_db(coll_args, coll_trans, args.input)
 
     if(not collection_exists(coll_sents)):
         print('Init sentiment collection...')
@@ -166,3 +166,10 @@ if __name__ == '__main__':
     print(coll_train.find_one({}))
     print(coll_trans.find_one({}))
     print(coll_sents.find_one({}))
+    print()
+
+    coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
+    coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+
+    print(coll_emb.find_one({}))
+    print(coll_emb_back.find_one({}))
