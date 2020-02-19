@@ -224,4 +224,4 @@ def remove_dummies():
 if __name__ == "__main__":
     # maximum is 387692
     limit = 387692
-    print("I don't do anything.")
+    print("I did my job.")
