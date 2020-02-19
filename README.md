@@ -9,18 +9,14 @@ You build a system to support users who directly search for arguments, e.g., by 
 
 1. ` $ docker build -t argu . `
 	- Build the image
-	- Only needed once or after changes on host
-2. ` $ docker run --name argu -d --rm -it argu `
-	- Starts the container as a form of background service
-	- Keeps running in the background until stopped
-3. ` $ docker attach argu `
-	- Access container shell (shell exit command: '` $ exit `)
-	- 'Do your stuff' mode
-	- While the container keeps running:
-		- enter shell as often as you want
-		- changes stay
-4. ` $ docker stop argu `
-	- Stop the container (removes itself)
+2. ` $ docker run --name argu-mongo -p 27017:27017 -d --rm mongo `
+	- Starts a MonoDB container
+3. ` $ docker run --name argu --rm -it -v <input-dir-path>:/input -v <output-dir-path>:/output argu `
+	- Runs the container
+	- Input directory with args-me.json and topics.xml
+	- Output directory will get the results as run.txt
+4. ` $ docker stop argu-mongo `
+	- Remove MongoDB container
 
 ## Command Line
 
@@ -31,12 +27,12 @@ You build a system to support users who directly search for arguments, e.g., by 
 
 ## How to Run
 
-1. ` $ python argU/preprocessing/mongodb.py -i <input dir path> `
+1. ` $ python argU/preprocessing/mongodb.py -i <input-dir-path> `
 	- Create mapping (mongoDB ID <--> argument.id); store into MongoDB
 	- Store arguments with the new ID into MongoDB
 	- Clean arguments and store as train-arguments into MongoDB
 	- Read Sentiments and store into MongoDB
-2. ` $ python argU/preprocessing/trec.py -i <input dir path> `
+2. ` $ python argU/preprocessing/trec.py -i <input-dir-path> `
 	- Create a .trec-file for Terrier (train and queries)
 3. ` $ python argU/indexing/a2v.py -f `
 	- Generate CBOW
@@ -46,7 +42,7 @@ You build a system to support users who directly search for arguments, e.g., by 
 	- copy result file in [resources](resources/)
 5. ` $ python -m argU -d `
 	- Compare given queries with argument embeddings; store Top-N DESM scores into MongoDB
-6. ` $ python -m argU -m -o <output dir path>`
+6. ` $ python -m argU -m -o <output-dir-path> `
 	- Merge DESM, Terrier and Sentiments to create final scores
   
 ### Submodul Excecution
