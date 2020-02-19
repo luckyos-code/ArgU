@@ -194,5 +194,18 @@ if __name__ == '__main__':
     n_500_q5_gains = [3, 3, 2, 1, 3, 2, 1, 3,
                       3, 3, 3, 3, 0, 2, 3, 1, 1, 2, 1, 2]
 
-    print(get_NDCG(n_500_q5_gains))
-    print(get_precision(n_500_q5_gains))
+    n_1000_q1_gains = [3, 3, 3, 2, 3, 3, 1,
+                       2, 2, 1, 0, 1, 2, 1, 0, 0, 1, 0, 1, 2]
+    n_1000_q2_gains = [3, 2, 0, 0, 2, 3, 0,
+                       3, 3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+
+    res_NDCG = get_NDCG(n_1000_q2_gains)
+    res_PREC = get_precision(n_1000_q2_gains)
+
+    print(res_NDCG)
+    print(res_PREC)
+
+    fancy_NDCG = '[' + '; '.join([
+        str(round(n, 2)).replace('.', ',') for n in res_NDCG
+    ]) + ']'
+    print(fancy_NDCG)

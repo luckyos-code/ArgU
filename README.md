@@ -29,36 +29,23 @@ You build a system to support users who directly search for arguments, e.g., by 
 1. In `.../ArgU/` run: ` $ pip install -r requirements.txt `
 2. Download the [Args.me Corpus](https://zenodo.org/record/3274636/files/argsme.zip) and extract to `.../ArgU/resources/`
 
-### How to Run 
-
-First of all make sure every requirement is met (see Get Requirements section)
-
-1. ` $ python argU/preprocessing/args_to_csv.py `
-	- Convert args-me.json -> args-me.csv
-2. ` $ python -m argU index -d -c all `
-	- Create train file for cbow and bm25
-	- Create a CBOW model
-	- Create a BM25 Model
-	- Generate a index with cbow and bm25
-3. ` $ python -m argU retrieve `
-    - Generiere die letzte Ausgabedatei als results.txt
-
-## How to Run 2.0
+## How to Run
 
 1. ` $ python argU/preprocessing/mongodb.py -i <path of args-me.json>`
-	- Create a Translation int <--> arg_id, stores in MongoDB
-	- Store all arguments with new ID in MongoDB
-	- Store train arguments with new ID in MongoDB
+	- Create mapping (mongoDB ID <--> argument.id); store into MongoDB
+	- Store arguments with the new ID into MongoDB
+	- Clean arguments and store as train-arguments into MongoDB
+	- Read Sentiments and store into MongoDB
 2. ` $ python argU/preprocessing/trec.py`
 	- Create a .trec-file for Terrier (train and queries)
 3. ` $ python argU/indexing/a2v.py -f `
-	- Generate CBOW if not exists
-	- Generate argument embeddings and store them in MongoDB
-4. Run Terrier
+	- Generate CBOW
+	- Generate argument embeddings and store them into MongoDB
+4. Run Terrier (TODO)
 	- Calculate DPH for queries
 	- copy result file in [resources](resources/)
 5. ` $ python -m argU -d `
-	- Compare all queries with all arguments and store top in MongoDB
+	- Compare given queries with argument embeddings; store Top-N DESM scores into MongoDB
 6. ` $ python -m argU -m -o <path of output>`
 	- Merge DESM, Terrier and Sentiments to create final scores
   
@@ -74,7 +61,7 @@ First of all make sure every requirement is met (see Get Requirements section)
 
 ### Modules
 
-* [indexing](argU/indexing/) - Index creation
+* [indexing](argU/indexing/) - Index for DESM scores
 * [preprocessing](argU/preprocessing/) - Prework and cleaning of input data
 * [sentiment](argU/sentiment/) - Sentiment analysis
 * [utils](argU/utils/) - Helper functionalities
@@ -88,6 +75,8 @@ First of all make sure every requirement is met (see Get Requirements section)
 * [Matplotlib](https://matplotlib.org) - Used to visualize scores
 * [Google Cloud Natural Language API](https://cloud.google.com/natural-language/) - Used for sentiment analysis
 * [Natural Language Toolkit](https://www.nltk.org) - (Deprecated) Used to train sentiment analysis model
+* [MongoDB](https://www.mongodb.com) - Used to store arguments and scores
+* [Terrier](http://terrier.org) - Used to calculate DPH scores
 
 ## Relevant Information for Subtask (1)
 
