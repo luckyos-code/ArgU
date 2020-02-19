@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     if(not collection_exists(coll_args) or not collection_exists(coll_trans)):
         print('Init args collection...')
-        init_db(coll_args, coll_trans, args_path=args.input)
+        init_db(coll_args, coll_trans, args.input)
 
     if(not collection_exists(coll_sents)):
         print('Init sentiment collection...')
