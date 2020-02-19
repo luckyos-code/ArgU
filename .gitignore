@@ -107,3 +107,6 @@ venv.bak/
 resources/*
 
 run.txt
+
+Pipfile
+Pipfile.lock

@@ -43,6 +43,25 @@ First of all make sure every requirement is met (see Get Requirements section)
 3. ` $ python -m argU retrieve `
     - Generiere die letzte Ausgabedatei als results.txt
 
+## How to Run 2.0
+
+1. ` $ python argU/preprocessing/mongodb.py -i <path of args-me.json>`
+	- Create a Translation int <--> arg_id, stores in MongoDB
+	- Store all arguments with new ID in MongoDB
+	- Store train arguments with new ID in MongoDB
+2. ` $ python argU/preprocessing/trec.py`
+	- Create a .trec-file for Terrier (train and queries)
+3. ` $ python argU/indexing/a2v.py -f `
+	- Generate CBOW if not exists
+	- Generate argument embeddings and store them in MongoDB
+4. Run Terrier
+	- Calculate DPH for queries
+	- copy result file in [resources](resources/)
+5. ` $ python -m argU -d `
+	- Compare all queries with all arguments and store top in MongoDB
+6. ` $ python -m argU -m -o <path of output>`
+	- Merge DESM, Terrier and Sentiments to create final scores
+  
 ### Submodul Excecution
 
 * For individual moduls, cd into directories and run ` $ python -m [modulname] `

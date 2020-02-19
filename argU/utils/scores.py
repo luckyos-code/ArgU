@@ -52,6 +52,8 @@ def evaluate(threshold=0.009, alpha=None):
                     sent_score = alpha * bs + (1 - alpha) * ds
                 else:
                     sent_score = fs
+
+                sent_score = fs + fs * abs(sent)
                 sorted_args.append(
                     (arg_id, sent_score, fs, sent, sent_m)
                 )
@@ -89,14 +91,14 @@ if __name__ == '__main__':
         print(f"Query \"{query_text}\" hat noch {len(args)} Argumente\n")
 
         arg_ids = [arg[0] for arg in args]
-        arg_ids = arg_ids[:30]
+        arg_ids = arg_ids[:50]
         print(arg_ids)
 
         arg_texts = dict()
         for arg_id, arg_text in FindArgumentIterator(arg_ids, raw_texts_only=True):
             arg_texts[arg_id] = arg_text
 
-        for arg_id in arg_ids:
-            print(arg_id)
-            print(f"\t > {arg_texts.get(arg_id, 'NOT FOUND')[:250]}")
+        for i, arg_id in enumerate(arg_ids):
+            print(i, arg_id)
+            print(f"\t > {arg_texts.get(arg_id, 'NOT FOUND')[:450]}\n")
         print(f"{'='*50}\n")
