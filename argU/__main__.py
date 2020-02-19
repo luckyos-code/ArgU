@@ -35,8 +35,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    '-i', '--input',
+    help='Input directory',
+    default=setup.ROOT_PATH,
+)
+
+parser.add_argument(
     '-o', '--output',
-    help='Output path',
+    help='Output directosy',
     default=setup.OUTPUT_PATH,
 )
 
@@ -54,7 +60,7 @@ coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
 coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
 print(f'Embedded Args: {coll_emb.count_documents({})}')
 
-queries = Q.read()
+queries = Q.read(args.input)
 
 if argparsed.desm:
     desm = DESM(CBOW.load())
@@ -117,7 +123,7 @@ if argparsed.merge:
 
         output_dict[query_id] = merged_args_list
 
-    with open(argparsed.output, 'w') as f_out:
+    with open(os.path.join(argparsed.output, 'run.txt'), 'w') as f_out:
         for (id, args) in output_dict.items():
             for i, arg_id in enumerate(args):
                 f_out.write(' '.join([

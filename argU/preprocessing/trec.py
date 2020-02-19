@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 import rootpath
 import re
 from tqdm import tqdm
@@ -11,6 +12,14 @@ try:
     from argU.utils import queries as Q
 except Exception as e:
     raise e
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '-i', '--input',
+    help='Input Args path',
+    default=setup.ROOT_PATH,
+)
+args = parser.parse_args()
 
 db = load_db()
 coll = db[setup.MONGO_DB_COL_TRAIN]
@@ -28,7 +37,7 @@ with open(setup.TREC_PATH, 'w', encoding='utf-8') as f_out:
         f_out.write(out)
 
 print('Topics to .trec')
-queries = Q.read()
+queries = Q.read(args.input)
 
 with open(setup.TREC_PATH_TOPICS, 'w', encoding='utf-8') as f_out:
     for query in queries:

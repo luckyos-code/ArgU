@@ -28,11 +28,11 @@ def collection_exists(coll):
     return coll.count_documents({}) > 0
 
 
-def init_db(coll_args, coll_translation, args_path):
+def init_db(coll_args, coll_translation, directory):
     """Initialisiere die Argumente aus der Ursprungsdatei"""
 
     trans = []
-    with open(args_path, 'r') as f_in:
+    with open(os.path.join(directory, 'args-me.json'), 'r') as f_in:
         data = json.load(f_in)
         arguments = data['arguments']
 
@@ -106,6 +106,20 @@ def store(data, coll_name, override=False):
         coll.insert_one(data)
 
 
+def init_emb_backup(db):
+    coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
+    coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+
+    coll_emb_back.drop()
+
+    print('Create embedding backup...')
+    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_EMBEDDINGS_BACKUP}]
+    coll_emb.aggregate(pipeline)
+
+    print(coll_emb.find_one({}))
+    print(coll_emb_back.find_one({}))
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -113,7 +127,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-i', '--input',
         help='Input Args path',
-        default=setup.ARGS_ME_JSON_PATH,
+        default=setup.RESOURCES_PATH,
     )
     args = parser.parse_args()
 

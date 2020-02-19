@@ -58,8 +58,8 @@ if __name__ == '__main__':
     last_emb = None
 
     from scipy.spatial.distance import cosine
-    for i, arg in enumerate(TrainArgsIterator(coll, full_data=True, max_args=-1)):
-        arg_emb = desm.arg_to_emb(arg, model_type='in')
+    for i, arg in enumerate(TrainArgsIterator(coll, full_data=True, max_args=2000)):
+        arg_emb = desm.arg_to_emb(arg, model_type='out')
 
         # if last_emb is not None:
         # print()
@@ -67,8 +67,8 @@ if __name__ == '__main__':
         # print()
         # last_emb = arg_emb
 
-        # print(arg['text'][:200])
-        # print()
+        print(arg['text'][:200])
+        print()
         embeddings.append({
             '_id': arg['_id'],
             'emb': arg_emb.tolist(),

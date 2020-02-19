@@ -137,8 +137,8 @@ class DESM:
 
         vec = np.sum(emb_matrix, axis=0) / (emb_matrix.shape[0])
 
-        # print(wv.most_similar(positive=emb_matrix, topn=40))
-        # print(f'Unk. count: {unk}')
+        print(wv.most_similar(positive=[vec], topn=10))
+        print(f'Unk. count: {unk}')
 
         # for (w, s) in wv.most_similar(positive=[vec], topn=10):
         # diff_words.add(w)

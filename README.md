@@ -31,12 +31,12 @@ You build a system to support users who directly search for arguments, e.g., by 
 
 ## How to Run
 
-1. ` $ python argU/preprocessing/mongodb.py -i <path of args-me.json>`
+1. ` $ python argU/preprocessing/mongodb.py -i <input dir path> `
 	- Create mapping (mongoDB ID <--> argument.id); store into MongoDB
 	- Store arguments with the new ID into MongoDB
 	- Clean arguments and store as train-arguments into MongoDB
 	- Read Sentiments and store into MongoDB
-2. ` $ python argU/preprocessing/trec.py`
+2. ` $ python argU/preprocessing/trec.py -i <input dir path> `
 	- Create a .trec-file for Terrier (train and queries)
 3. ` $ python argU/indexing/a2v.py -f `
 	- Generate CBOW
@@ -46,7 +46,7 @@ You build a system to support users who directly search for arguments, e.g., by 
 	- copy result file in [resources](resources/)
 5. ` $ python -m argU -d `
 	- Compare given queries with argument embeddings; store Top-N DESM scores into MongoDB
-6. ` $ python -m argU -m -o <path of output>`
+6. ` $ python -m argU -m -o <output dir path>`
 	- Merge DESM, Terrier and Sentiments to create final scores
   
 ### Submodul Excecution

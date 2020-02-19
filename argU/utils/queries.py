@@ -18,11 +18,11 @@ except Exception as e:
 Query = namedtuple('Query', 'id text')
 
 
-def read():
+def read(directory):
     """Read queries and clean them"""
 
     queries = []
-    tree = ET.parse(setup.TOPICS_PATH)
+    tree = ET.parse(os.path.join(directory, 'topics.xml'))
     topics = tree.getroot()
 
     for topic in topics:
@@ -48,6 +48,6 @@ if __name__ == '__main__':
 
     cbow = CBOW.load()
     desm = DESM(cbow)
-    queries = read()
+    queries = read(setup.ROOT_PATH)
 
     print(desm.queries_to_emb(queries))
