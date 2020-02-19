@@ -11,7 +11,7 @@ You build a system to support users who directly search for arguments, e.g., by 
 	- Build the image
 2. ` $ docker run --name argu-mongo -p 27017:27017 -d --rm mongo `
 	- Starts a MonoDB container
-3. ` $ docker run --name argu --rm -it -v <input-dir-path>:/input -v <output-dir-path>:/output argu `
+3. ` $ docker run -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
 	- Runs the container
 	- Input directory with args-me.json and topics.xml
 	- Output directory will get the results as run.txt
