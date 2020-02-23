@@ -60,7 +60,7 @@ coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
 coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
 print(f'Embedded Args: {coll_emb.count_documents({})}')
 
-queries = Q.read(args.input)
+queries = Q.read(argparsed.input)
 
 if argparsed.desm:
     desm = DESM(CBOW.load())

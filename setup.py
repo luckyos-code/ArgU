@@ -20,9 +20,11 @@ MONGO_DB_COL_ARGS = 'args'
 MONGO_DB_COL_TRAIN = 'train'
 MONGO_DB_COL_TRANSLATION = 'trans'
 MONGO_DB_COL_SENTIMENTS = 'sents'
+MONGO_DB_COL_SENTIMENTS_TRAIN = 'sents_train'
 MONGO_DB_COL_EMBEDDINGS = 'emb'
 MONGO_DB_COL_EMBEDDINGS_BACKUP = 'emb_back'
 MONGO_DB_COL_RESULTS = 'results'
+MONGO_DB_COL_RESULTS_BACKUP = 'results_back'
 
 TREC_PATH = os.path.join(RESOURCES_PATH, 'args-me.trec')
 TREC_PATH_TOPICS = os.path.join(RESOURCES_PATH, 'topics.trec')
