@@ -11,7 +11,7 @@ You build a system to support users who directly search for arguments, e.g., by 
 	- Build the image
 2. ` $ docker run --name argu-mongo -p 27017:27017 -d --rm mongo `
 	- Starts a MonoDB container
-3. ` $ docker run --name argu --rm -it -v <input-dir-path>:/input -v <output-dir-path>:/output argu `
+3. ` $ docker run -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
 	- Runs the container
 	- Input directory with args-me.json and topics.xml
 	- Output directory will get the results as run.txt
@@ -140,4 +140,4 @@ An example run for task 1 is:
 ### Material
 * Literature: [Ajjour et al. 2019](https://webis.de/downloads/publications/papers/stein_2019o.pdf), [Wachsmuth et al. 2017](https://webis.de/downloads/publications/papers/stein_2017r.pdf), [Potthast et al. 2019](https://webis.de/downloads/publications/papers/stein_2019j.pdf)
 * Dataset: [Args.me Corpus](https://zenodo.org/record/3274636#.XeAyUi03v4a)
-* Evaluation: [Topics Queries XML](resources/topics-automatic-runs-task-1.xml)
+* Evaluation: [Topics Queries XML](/topics.xml)
