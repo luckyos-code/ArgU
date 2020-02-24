@@ -11,6 +11,7 @@ try:
     import setup
     from argU.preprocessing.texts import clean_to_train
     from argU.preprocessing.texts import clean_to_nl
+    from argU.preprocessing.texts import clean_to_sentiment
 except Exception as e:
     print(e)
     sys.exit(0)
@@ -93,6 +94,23 @@ def init_train(source_coll, destiny_coll, min_arg_length=25, max_args=-1):
     destiny_coll.insert_many(data)
 
 
+def init_sents_train(source_coll, destiny_coll, min_arg_length=25, max_args=-1):
+    data = []
+    for i, arg in tqdm(enumerate(source_coll.find())):
+        if i == max_args:
+            break
+
+        text = arg['premises'][0]['text']
+        nl_text = clean_to_nl(text)
+        if len(nl_text.split()) >= min_arg_length:
+            data.append({
+                '_id': arg['_id'],
+                'text': clean_to_sentiment(text),
+            })
+
+    destiny_coll.insert_many(data)
+
+
 def store(data, coll_name, override=False):
     db = load_db()
     coll = db[coll_name]
@@ -120,6 +138,48 @@ def init_emb_backup(db):
     print(coll_emb_back.find_one({}))
 
 
+def init_res_backup(db):
+    coll = db[setup.MONGO_DB_COL_RESULTS]
+    coll_back = db[setup.MONGO_DB_COL_RESULTS_BACKUP]
+
+    coll_back.drop()
+
+    print('Create results backup...')
+    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_RESULTS_BACKUP}]
+    coll.aggregate(pipeline)
+
+    print(coll.find_one({}))
+    print(coll_back.find_one({}))
+
+
+def load_emb_backup(db):
+    coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
+    coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+
+    coll_emb.drop()
+
+    print('Load embedding backup...')
+    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_EMBEDDINGS}]
+    coll_emb_back.aggregate(pipeline)
+
+    print(coll_emb.find_one({}))
+    print(coll_emb_back.find_one({}))
+
+
+def load_res_backup(db):
+    coll = db[setup.MONGO_DB_COL_RESULTS]
+    coll_back = db[setup.MONGO_DB_COL_RESULTS_BACKUP]
+
+    coll.drop()
+
+    print('Load results backup...')
+    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_RESULTS}]
+    coll_back.aggregate(pipeline)
+
+    print(coll.find_one({}))
+    print(coll_back.find_one({}))
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -137,6 +197,7 @@ if __name__ == '__main__':
     coll_train = db[setup.MONGO_DB_COL_TRAIN]
     coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
     coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
+    coll_sents_train = db[setup.MONGO_DB_COL_SENTIMENTS_TRAIN]
 
     # print('Delete Collections...')
     # coll_args.drop()
@@ -156,13 +217,26 @@ if __name__ == '__main__':
         print('Init train collection...')
         init_train(coll_args, coll_train, max_args=-1)
 
+    if(not collection_exists(coll_sents_train)):
+        print('Init sentiments train collection...')
+        init_sents_train(coll_args, coll_sents_train, max_args=-1)
+
     print('Argument Collection:', coll_args.count_documents({}))
     print('Training Collection:', coll_train.count_documents({}))
     print('Translation Collection:', coll_trans.count_documents({}))
     print('Sentiments Collection:', coll_sents.count_documents({}))
+    print('Sentiments Train Collection:', coll_sents_train.count_documents({}))
     print()
 
     print(coll_args.find_one({}))
     print(coll_train.find_one({}))
     print(coll_trans.find_one({}))
     print(coll_sents.find_one({}))
+    print(coll_sents_train.find_one({}))
+    print()
+
+    coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
+    coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+
+    # print(coll_emb.find_one({}))
+    # print(coll_emb_back.find_one({}))
