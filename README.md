@@ -140,4 +140,4 @@ An example run for task 1 is:
 ### Material
 * Literature: [Ajjour et al. 2019](https://webis.de/downloads/publications/papers/stein_2019o.pdf), [Wachsmuth et al. 2017](https://webis.de/downloads/publications/papers/stein_2017r.pdf), [Potthast et al. 2019](https://webis.de/downloads/publications/papers/stein_2019j.pdf)
 * Dataset: [Args.me Corpus](https://zenodo.org/record/3274636#.XeAyUi03v4a)
-* Evaluation: [Topics Queries XML](resources/topics-automatic-runs-task-1.xml)
+* Evaluation: [Topics Queries XML](/topics.xml)

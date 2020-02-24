@@ -38,14 +38,13 @@ WORKDIR /ArgU
 COPY ./ ./
 
 # Run the necessary steps
-CMD bash
-# python argU/preprocessing/mongodb.py -i /input \
-#	&& python argU/preprocessing/trec.py -i /input \
-#	&& python argU/indexing/a2v.py -f \
-#	&& /terrier-core-4.2/bin/trec_setup.sh /ArgU/resources/args-me.trec
-#!!	&& cp /ArgU/terrier.properties /terrier-core-4.2/etc/terrier.properties
-#	&& /terrier-core-4.2/bin/trec_terrier.sh -i 
-#	&& /terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.topics=/ArgU/resources/topics.trec
-#!!	&& cp /terrier-core-4.2/var/results/terrier.res /ArgU/resources/terrier.res
-#	&& python -m argU -d \
-#	&& python -m argU -m -o /output
+CMD python argU/preprocessing/mongodb.py -i /input \
+	&& python argU/preprocessing/trec.py -i /input \
+	&& python argU/indexing/a2v.py -f \
+	&& /terrier-core-4.2/bin/trec_setup.sh /ArgU/resources/args-me.trec \
+	&& /terrier-core-4.2/bin/trec_terrier.sh -i \
+	&& /terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.model=DPH -Dtrec.topics=/ArgU/resources/topics.trec \
+	&& cp /terrier-core-4.2/var/results/DPH_0.res /ArgU/resources/terrier.res \
+	&& rm /terrier-core-4.2/var/results/DPH_0.res \
+	&& python -m argU -d \
+	&& python -m argU -m -o /output
