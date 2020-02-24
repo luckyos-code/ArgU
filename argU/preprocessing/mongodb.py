@@ -52,7 +52,7 @@ def init_db(coll_args, coll_translation, directory):
 def new_id_to_args_id_dict(coll_trans):
     trans_dict = dict()
     for arg in tqdm(coll_trans.find()):
-        trans_dict[arg['_id']] = arg['arg_id']
+        trans_dict[arg['arg_id']] = arg['_id']
     return trans_dict
 
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
     # coll_args.drop()
     # coll_train.drop()
     # coll_trans.drop()
-    # coll_sents.drop()
+    coll_sents.drop()
 
     if(not collection_exists(coll_args) or not collection_exists(coll_trans)):
         print('Init args collection...')
