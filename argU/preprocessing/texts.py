@@ -246,11 +246,12 @@ def tokenize_query(query):
             tokens = dict()
             synonyms = []
             antonyms = []
-            for syn in wordnet.synsets(i):
-                for l in syn.lemmas():
-                    synonyms.append(l.name())
-                    # if l.antonyms():
-                    #     antonyms.append(l.antonyms()[0].name())
+            try:
+                for syn in wordnet.synsets(i):
+                    for l in syn.lemmas():
+                        synonyms.append(l.name())
+            except LookupError as le:
+                nltk.download('wordnet')
             for s, syno in enumerate(synonyms):
                 syno.replace("_", " ")
                 synonyms[s] = syno
