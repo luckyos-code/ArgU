@@ -9,18 +9,14 @@ You build a system to support users who directly search for arguments, e.g., by 
 
 1. ` $ docker build -t argu . `
 	- Build the image
-	- Only needed once or after changes on host
-2. ` $ docker run --name argu -d --rm -it argu `
-	- Starts the container as a form of background service
-	- Keeps running in the background until stopped
-3. ` $ docker attach argu `
-	- Access container shell (shell exit command: '` $ exit `)
-	- 'Do your stuff' mode
-	- While the container keeps running:
-		- enter shell as often as you want
-		- changes stay
-4. ` $ docker stop argu `
-	- Stop the container (removes itself)
+2. ` $ docker run --name argu-mongo -p 27017:27017 -d --rm mongo `
+	- Starts a MonoDB container
+3. ` $ docker run -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
+	- Runs the container
+	- Input directory with args-me.json and topics.xml
+	- Output directory will get the results as run.txt
+4. ` $ docker stop argu-mongo `
+	- Remove MongoDB container
 
 ## Command Line
 
@@ -29,20 +25,26 @@ You build a system to support users who directly search for arguments, e.g., by 
 1. In `.../ArgU/` run: ` $ pip install -r requirements.txt `
 2. Download the [Args.me Corpus](https://zenodo.org/record/3274636/files/argsme.zip) and extract to `.../ArgU/resources/`
 
-### How to Run 
+## How to Run
 
-First of all make sure every requirement is met (see Get Requirements section)
-
-1. ` $ python argU/preprocessing/args_to_csv.py `
-	- Convert args-me.json -> args-me.csv
-2. ` $ python -m argU index -d -c all `
-	- Create train file for cbow and bm25
-	- Create a CBOW model
-	- Create a BM25 Model
-	- Generate a index with cbow and bm25
-3. ` $ python -m argU retrieve `
-    - Generiere die letzte Ausgabedatei als results.txt
-
+1. ` $ python argU/preprocessing/mongodb.py -i <input-dir-path> `
+	- Create mapping (mongoDB ID <--> argument.id); store into MongoDB
+	- Store arguments with the new ID into MongoDB
+	- Clean arguments and store as train-arguments into MongoDB
+	- Read Sentiments and store into MongoDB
+2. ` $ python argU/preprocessing/trec.py -i <input-dir-path> `
+	- Create a .trec-file for Terrier (train and queries)
+3. ` $ python argU/indexing/a2v.py -f `
+	- Generate CBOW
+	- Generate argument embeddings and store them into MongoDB
+4. Run Terrier (TODO)
+	- Calculate DPH for queries
+	- copy result file in [resources](resources/)
+5. ` $ python -m argU -d `
+	- Compare given queries with argument embeddings; store Top-N DESM scores into MongoDB
+6. ` $ python -m argU -m -o <output-dir-path> `
+	- Merge DESM, Terrier and Sentiments to create final scores
+  
 ### Submodul Excecution
 
 * For individual moduls, cd into directories and run ` $ python -m [modulname] `
@@ -63,7 +65,7 @@ First of all make sure every requirement is met (see Get Requirements section)
 
 ### Modules
 
-* [indexing](argU/indexing/) - Index creation
+* [indexing](argU/indexing/) - Index for DESM scores
 * [preprocessing](argU/preprocessing/) - Prework and cleaning of input data
 * [sentiment](argU/sentiment/) - Sentiment analysis
 * [utils](argU/utils/) - Helper functionalities
@@ -77,6 +79,8 @@ First of all make sure every requirement is met (see Get Requirements section)
 * [Matplotlib](https://matplotlib.org) - Used to visualize scores
 * [Google Cloud Natural Language API](https://cloud.google.com/natural-language/) - Used for sentiment analysis
 * [Natural Language Toolkit](https://www.nltk.org) - (Deprecated) Used to train sentiment analysis model
+* [MongoDB](https://www.mongodb.com) - Used to store arguments and scores
+* [Terrier](http://terrier.org) - Used to calculate DPH scores
 
 ## Relevant Information for Subtask (1)
 
@@ -136,4 +140,4 @@ An example run for task 1 is:
 ### Material
 * Literature: [Ajjour et al. 2019](https://webis.de/downloads/publications/papers/stein_2019o.pdf), [Wachsmuth et al. 2017](https://webis.de/downloads/publications/papers/stein_2017r.pdf), [Potthast et al. 2019](https://webis.de/downloads/publications/papers/stein_2019j.pdf)
 * Dataset: [Args.me Corpus](https://zenodo.org/record/3274636#.XeAyUi03v4a)
-* Evaluation: [Topics Queries XML](resources/topics-automatic-runs-task-1.xml)
+* Evaluation: [Topics Queries XML](/topics.xml)

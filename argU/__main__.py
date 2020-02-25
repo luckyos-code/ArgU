@@ -8,211 +8,151 @@ import rootpath
 try:
     sys.path.append(os.path.join(rootpath.detect()))
     import setup
-    from argU.preprocessing.train import generate_train_file
+    from argU.utils import queries as Q
+    from argU.utils import arguments
+    from argU.utils.arguments import Argument
     from argU.indexing.models import CBOW
-    from argU.indexing.models import BM25Manager
-    from argU.indexing import index
-    from argU.utils import queries
-    from argU.utils import scores
+    from argU.indexing.models import DESM
+    from argU.preprocessing.mongodb import load_db
+    from argU.preprocessing.mongodb import collection_exists
+    from argU.preprocessing.mongodb import new_id_to_args_id_dict
 except Exception as e:
-    print("Project intern dependencies could not be loaded...")
     print(e)
     sys.exit(0)
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    'mode',
-    choices=['index', 'retrieve', 'collect'],
-    help="Erstelle einen Index oder erhalte Argumente",
-)
-
-parser.add_argument(
-    '-n', '--max_args',
-    default=-1, type=int,
-    help='Menge der verwendeten Argumente. -1 = Alle Argumente',
-)
-
-parser.add_argument(
-    '-a', '--alpha',
-    default=0.5, type=float,
-    help='Alpha Einfluss BM25 und CBOW',
-)
-
-parser.add_argument(
-    '-c', '--create',
-    choices=['all', 'bm25', 'cbow', 'indexlist'],
-    default='all',
-)
-
-parser.add_argument(
-    '-q', '--query_range',
-    nargs='+', type=int,
-    default=[0, 1000],
-)
-
-parser.add_argument(
-    '-d', '--deep_clean',
+    '-d', '--desm',
     action='store_true',
+    help='Reset query results',
 )
 
 parser.add_argument(
-    '-v', '--visualize',
+    '-m', '--merge',
     action='store_true',
+    help='Merge Terrier scores with query scores',
 )
 
 parser.add_argument(
-    '--debug',
-    action='store_true',
+    '-i', '--input',
+    help='Input directory',
+    default=setup.ROOT_PATH,
 )
 
-args = parser.parse_args()
-print(f"Args: {args}")
+parser.add_argument(
+    '-o', '--output',
+    help='Output directosy',
+    default=setup.OUTPUT_PATH,
+)
 
-if args.debug:
-    train_args = 20000
-    method = 'ulT1DetroitnitzCbowBm25Sentiments'
-else:
-    train_args = -1
-    method = 'method'
-
-
-# if len(args.query_range) != 2 or args.query_range[0] < 0 or args.query_range[0] >= args.query_range[1]:
-#     print("Query Range fehlerhaft...")
-#     sys.exit(0)
-
-setup.assert_file_exists(setup.ARGS_ME_CSV_PATH)
-
-if 'index' in args.mode:
-
-    bm25_manager = BM25Manager()
-    cbow = CBOW()
-
-    if args.create in ['cbow', 'all']:
-
-        # Erstelle das CBOW Modell
-
-        if not os.path.isfile(setup.TRAIN_ARGS_PATH):
-            print("Generate train file...")
-            generate_train_file(max_args=train_args)
-
-        print("Generate CBOW model...")
-        cbow.build(min_count=5, size=100, window=7)
-        cbow.store()
-
-    if args.create in ['bm25', 'all']:
-
-        # Erstelle das BM25 Modell
-
-        if not os.path.isfile(setup.TRAIN_ARGS_PATH):
-            print("Generate train file...")
-            generate_train_file(max_args=-1)
-
-        print("Erstelle das BM25-Modell...")
-        bm25_manager.build(max_args=-1)
-        bm25_manager.store()
-
-    if args.create in ['indexlist', 'all']:
-
-        # Erstelle den Index aus dem BM25-Modell und dem CBOW-Modell
-        # Teste vorher, ob alle Modelle existieren!
-
-        setup.assert_file_exists(setup.CBOW_PATH)
-        setup.assert_file_exists(setup.BM25_META_PATH)
-        setup.assert_file_exists(setup.BM25_DOCS_PATH)
-
-        print("Erstelle eine Index Datei...")
-
-        if not cbow.loaded:
-            cbow = CBOW.load()
-        if not bm25_manager.loaded:
-            print("not loaded")
-            bm25_manager = BM25Manager.load()
-
-        index.create(
-            cbow.model,
-            bm25_manager.index,
-            max_args=-1,
-        )
-
-        if args.deep_clean:
-            os.remove(setup.TRAIN_ARGS_PATH)
-            os.remove(setup.BM25_DOCS_PATH)
-
-    del(cbow)
-    del(bm25_manager)
+argparsed = parser.parse_args()
+print(f"Args: {argparsed}")
 
 
-if args.mode == 'retrieve':
+setup.assert_file_exists(setup.CBOW_PATH)
 
-    # Bestimme Argumente für die Testqueries
-    # Teste vorher, ob die passenden Dateien existieren
+db = load_db()
+coll_args = db[setup.MONGO_DB_COL_ARGS]
+coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
+coll_res = db[setup.MONGO_DB_COL_RESULTS]
+coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
+coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
+print(f'Embedded Args: {coll_emb.count_documents({})}')
 
-    setup.assert_file_exists(setup.BM25_META_PATH)
-    setup.assert_file_exists(setup.CBOW_PATH)
-    setup.assert_file_exists(setup.SENTIMENTS_PATH)
+queries = Q.read(argparsed.input)
 
-    bm25_manager = BM25Manager.load(mode='meta')
-    cbow = CBOW.load()
-
-    # Lade die Queries
-
-    query_ids, query_texts = queries.read(
-        start=args.query_range[0],
-        stop=args.query_range[1],
+if argparsed.desm:
+    desm = DESM(CBOW.load())
+    top_args = desm.evaluate_queries(
+        desm.queries_to_emb(queries),
+        coll_emb,
+        top_n=4000,
+        max_args=-1,
     )
-    query_texts = queries.clean(query_texts)
+    desm.store_query_results(coll_res, queries, top_args)
 
-    for i, qt in enumerate(query_texts):
-        print(f"{i+1} > {qt}")
-    print()
+if argparsed.merge:
+    assert collection_exists(coll_res)
+    assert setup.file_exists(setup.TERRIER_RESULTS_PATH)
 
-    # Bestimme die besten Argumente
+    N = 1000
+    print(f'N Value: {N}')
 
-    arg_ids, bm25_scores, desim_scores = index.collect_arguments(
-        query_texts,
-        cbow.model,
-        bm25_manager.index,
-        max_args=args.max_args,
-    )
+    max_queries = -1
 
-    # Bestimme den finalen Score
-    # Dazu werden beide Scores paarweise zusammengerechnet
-    # Zusätzlich kommen Sentiment Score ins Spiel, der zur Sortierung dient
+    output_dict = dict()
+    for i, desm_scores in enumerate(coll_res.find()):
+        if i == max_queries:
+            break
 
-    top_args = index.get_top_args(
-        arg_ids,
-        bm25_scores,
-        desim_scores,
-        alpha=args.alpha,
-        top_n=100,
-    )
+        query_id = desm_scores['query_id']
+        args = desm_scores['args'][:N]
 
-    sentiments = index.get_sentiments(top_args)
+        terrier_data = dict()
+        with open(setup.TERRIER_RESULTS_PATH, 'r') as f_in:
+            for line in f_in:
+                line = line.split()
+                if line[0] == query_id:
+                    terrier_data[int(line[2])] = line[4]  # Arg
+        merged_args = []
+        for a in args:
+            if a in terrier_data:
+                # sents = coll_sents.find_one({'_id': a})
+                # print(sents)
+                merged_args.append(
+                    (a, float(terrier_data[a]))
+                )
 
-    # Speichere die gefundenen Argumente mit scores in eine Zwischendatei
+        merged_args.sort(key=lambda x: x[1], reverse=True)
+        # merged_args_list = [ma[0] for ma in merged_args]
+        print(f'### {query_id} {desm_scores["query_text"]}')
+        # print('---')
+        # arguments.fancy_print(
+        #     coll_args,
+        #     merged_args_list[:20],
+        #     trans_dict=trans_dict,
+        #     arg_len=2000,
+        # )
 
-    scores.collect_scores(
-        query_ids,
-        query_texts,
-        top_args,
-        sentiments,
-    )
+        # Sentiment Analysis
 
-if args.mode == 'retrieve' or args.mode == 'collect':
+        output_dict[query_id] = merged_args
 
-    # Speichere Argumente in dem passenden Output Format
-    queries_args = scores.evaluate(threshold=0.5)
-
-    with open(setup.RUN_PATH, 'w') as f_out:
-        for (query_id, query_text, args) in queries_args:
-            for i, arg in enumerate(args):
+    with open(os.path.join(argparsed.output, 'run.txt'), 'w') as f_out:
+        for (id, args) in output_dict.items():
+            for i, (arg_id, score) in enumerate(args):
                 f_out.write(' '.join([
-                    query_id,
-                    'Q0',
-                    arg[0],
-                    str(i + 1),
-                    str(arg[1]),
-                    method,
-                    '\n',
+                    str(id), 'Q0', coll_trans.find_one(
+                        {'_id': arg_id})['arg_id'], str(i + 1),
+                    str(score), setup.METHOD, '\n'
                 ]))
+
+
+# for i, res in enumerate(coll_res.find()):
+#     if i == 3:
+#         break
+#     args = arguments.find(coll_args, res['args'])
+#     print(res['query_text'])
+#     print('=' * 40)
+#     for a in args:
+#         print('> ', Argument.get_text(a)[:200])
+#     print()
+
+    # if args.mode == 'retrieve' or args.mode == 'collect':
+
+    #     # Speichere Argumente in dem passenden Output Format
+    #     queries_args = scores.evaluate(threshold=0.5)
+
+    #     with open(setup.RUN_PATH, 'w') as f_out:
+    #         for (query_id, query_text, args) in queries_args:
+    #             for i, arg in enumerate(args):
+    #                 f_out.write(' '.join([
+    #                     query_id,
+    #                     'Q0',
+    #                     arg[0],
+    #                     str(i + 1),
+    #                     str(arg[1]),
+    #                     method,
+    #                     '\n',
+    #                 ]))

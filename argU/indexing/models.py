@@ -8,19 +8,14 @@ import time
 from tqdm import tqdm
 
 import numpy as np
-from numpy import linalg as LA
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
 from gensim.models import KeyedVectors
 from scipy.spatial import distance
-from sklearn import preprocessing
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
     import setup
-    from argU.utils.reader import Argument
-    from argU.utils.reader import TrainArgsIterator
-    from argU.indexing.rank_bm25 import BM25Okapi
 except Exception as e:
     print("Project intern dependencies could not be loaded...")
     print(e)
@@ -60,9 +55,9 @@ class CBOW:
     def loaded(self):
         return self.model is not None
 
-    def build(self, min_count=5, size=300, window=3):
+    def build(self, iterable, min_count=5, size=300, window=3):
         self.model = Word2Vec(
-            TrainArgsIterator(only_texts=True),
+            iterable,
             size=size,
             window=window,
             min_count=min_count,
@@ -71,142 +66,37 @@ class CBOW:
         )
 
     def store(self):
+        """ Store CBOW model """
+
         tick = time.time()
         self.model.save(setup.CBOW_PATH)
         time_spent = time.time() - tick
-
-        print(f"CBOW: Benötigte zeit zum Speichern: {time_spent:.2f}s")
+        print(f"Time to store CBOW: {time_spent:.2f}s")
 
     @staticmethod
     def load():
 
-        print("Lade CBOW Modell...")
+        print("Load CBOW...")
         tick = time.time()
         cbow = CBOW()
         cbow.model = Word2Vec.load(setup.CBOW_PATH)
         time_spent = time.time() - tick
 
-        print(f"CBOW: Benötigte zeit zum Laden: {time_spent:.2f}s")
+        print(f"Time needed: {time_spent:.2f}s")
         return cbow
 
 
-class BM25Manager:
-    """BM25Kapi Manager
-
-    Args:
-        index (:obj:`BM25Kapi`): BM25 Algorithmus
-    """
-
-    def __init__(self):
-        self.index = None
-
-    @property
-    def loaded(self):
-        return self.index is not None
-
-    def build(self, max_args=-1):
-        """Erstelle ein neues BM25Kapi Objekt. Texte und IDs
-            werden im Manager zusätzlich gespeichert.
-        """
-
-        self.index = BM25Okapi(TrainArgsIterator(max_args=max_args))
-
-    @staticmethod
-    def load(mode=None):
-        """Lade einen als JSON gespeicherten `BM25Manager`
-
-        Args:
-            mode (:obj:`str`, optional): Entweder None, 'meta' oder 'args'. Manchmal braucht
-                man nicht das ganze Modell
-        """
-
-        print("Lade BM25 Modell...")
-        tick = time.time()
-
-        bm25_manager = BM25Manager()
-        bm25_manager.index = BM25Okapi()
-
-        if mode is None or mode == 'meta':
-            with open(setup.BM25_META_PATH, 'r') as f_in:
-                meta_data = json.load(f_in)
-
-                bm25_manager.index.idf = meta_data['idf']
-                bm25_manager.index.corpus_size = meta_data['corpus_size']
-                bm25_manager.index.k1 = meta_data['k1']
-                bm25_manager.index.b = meta_data['b']
-                bm25_manager.index.avgdl = meta_data['avgdl']
-
-        if mode is None or mode == 'args':
-            with open(
-                setup.BM25_DOCS_PATH, 'r', newline='', encoding='utf-8'
-            ) as f_in:
-                reader = csv.reader(f_in, setup.BM25_DOCS_CONFIG)
-
-                for a_id, dl, df in tqdm(reader):
-                    bm25_manager.index.arg_ids.append(a_id)
-                    bm25_manager.index.doc_len.append(int(dl))
-                    bm25_manager.index.doc_freqs.append(json.loads(df))
-
-        time_spent = time.time() - tick
-
-        if mode is None or mode == 'args':
-            print(
-                f"BM25: Benötigte zeit zum Laden von "
-                f"{len(bm25_manager.index.arg_ids)} "
-                f"Zeit: {time_spent:.2f}s"
-            )
-        else:
-            print('Metadaten für BM25Kapi wurden geladen...')
-            print(f"Zeit: {time_spent:.2f}s")
-
-        return bm25_manager
-
-    def store(self):
-        """Speichere diesen `BM25Manager`
-
-        Args:
-            path (str): Dateipfad
-        """
-
-        tick = time.time()
-
-        meta_payload = {
-            'idf': self.index.idf,
-            'corpus_size': self.index.corpus_size,
-            'k1': self.index.k1,
-            'b': self.index.b,
-            'avgdl': self.index.avgdl,
-        }
-
-        with open(setup.BM25_META_PATH, 'w') as f_out:
-            json.dump(meta_payload, f_out)
-
-        with open(
-            setup.BM25_DOCS_PATH, 'w', newline='', encoding='utf-8'
-        ) as f_out:
-            writer = csv.writer(f_out, setup.BM25_DOCS_CONFIG)
-            for i, (a_id, dl, df) in tqdm(enumerate(zip(
-                self.index.arg_ids, self.index.doc_len, self.index.doc_freqs
-            ))):
-                writer.writerow([
-                    a_id, dl, json.dumps(df)
-                ])
-
-        time_spent = time.time() - tick
-        print((
-            f"BM25: Benötigte zeit zum Speichern von "
-            f"{len(self.index.arg_ids)} Argumenten: {time_spent:.2f}s"
-        ))
+diff_words = set([])
 
 
-class DualEmbedding:
-    def __init__(self, model_in):
-        self.model_in = model_in
-        self.vector_size = model_in.trainables.layer1_size
+class DESM:
+    def __init__(self, cbow):
+        self.vector_size = cbow.model.vector_size
+        self.model_in = cbow.model
         self.model_out = self.__init_model_out()
 
     def __init_model_out(self):
-        """Erstelle KeyVectors für w_IN und w_OUT"""
+        """Create KeyVectors for w_OUT"""
 
         model_out = KeyedVectors(self.vector_size)
         model_out.vocab = self.model_in.wv.vocab
@@ -214,166 +104,138 @@ class DualEmbedding:
         model_out.vectors = self.model_in.trainables.syn1neg
         return model_out
 
-    def get_processed_queries(self, queries, q_type='in'):
-        model = self.model_in if q_type == 'in' else self.model_out
-        processed_queries = []
+    def __get_term_variants(self, term):
+        return [
+            term,
+            term[0].lower() + term[1:],
+            term.lower(),
+        ]
 
-        for j, query in enumerate(queries):
-            terms = query.split()
-            matrix = np.zeros((len(terms), self.vector_size), dtype=float)
+    def arg_to_emb(self, arg_train, model_type='in'):
+        if model_type == 'in':
+            wv = self.model_in.wv
+        elif model_type == 'out':
+            wv = self.model_out
+        else:
+            assert False, 'Wrong model type. Choose in or out...'
+
+        text = arg_train['text'].split()
+        emb_matrix = np.zeros(
+            (len(text), wv.vector_size)
+        )
+
+        unk = 0
+        for i, term in enumerate(text):
+            term_vars = self.__get_term_variants(term)
+            for tv in term_vars:
+                if tv in wv.vocab:
+                    emb = wv[tv]
+                    emb_matrix[i] = emb / np.linalg.norm(emb)
+                    break
+                if i == len(term_vars):
+                    unk += 1
+
+        vec = np.sum(emb_matrix, axis=0) / (emb_matrix.shape[0])
+
+        # print(wv.most_similar(positive=[vec], topn=10))
+        # print(f'Unk. count: {unk}')
+
+        # for (w, s) in wv.most_similar(positive=[vec], topn=10):
+        # diff_words.add(w)
+        # print(diff_words)
+        # print(len(diff_words))
+        return vec
+
+    def queries_to_emb(self, queries, model_type='in'):
+        if model_type == 'in':
+            model = self.model_in
+        elif model_type == 'out':
+            model = self.model_out
+        else:
+            assert False, 'Wrong model type. Choose in or out...'
+
+        query_embs = []
+        unk_all = 0
+        for query in queries:
+            terms = query.text.split()
+            emb_matrix = np.zeros((len(terms), model.vector_size))
             unk = 0
             for i, term in enumerate(terms):
-                if term in model.wv:
-                    matrix[i] = model.wv[term]
-                else:
-                    if term.lower() in model.wv:
-                        matrix[i] = model.wv[term.lower()]
-                    else:
+                term_vars = self.__get_term_variants(term)
+                for tv in term_vars:
+                    if tv in model.wv.vocab:
+                        emb = model.wv.word_vec(tv)
+                        emb_matrix[i] = emb
+                        break
+                    if i == len(term_vars):
                         unk += 1
-            print(f"Query {j}: {unk} von {len(terms)} Wörtern sind unbekannt")
-            processed_queries.append(
-                (terms, matrix)
-            )
-        return processed_queries
 
-    def desim(self, query_matrix, arg_emb):
-        """ Berechnung der Ähnlichkeit zwischen Query
-            und Argument für IN und OUT Embeddings
+            print((
+                f'[{query.id}] {query.text}  {emb_matrix.shape} -> '
+                f'{unk} von {len(query.text.split())} Wörtern unbekannt'
+            ))
+            # for i, emb in enumerate(emb_matrix):
+            # most_sim = model.wv.most_similar(positive=[emb], topn=4)
+            # print(f'\t{terms[i]} -> {most_sim}')
+            print()
+            unk_all += unk
+            query_embs.append(emb_matrix)
+        print(f'Number of queries: {len(query_embs)}')
+        print(f'Number of unknown words: {unk_all}')
+        return query_embs
+
+    def evaluate_queries(self, query_matrices, coll_emb, top_n=500, max_args=-1):
+        resulting_scores = []
+        arg_ids = []
+        for i, arg in tqdm(enumerate(coll_emb.find())):
+            if i == max_args:
+                break
+            arg_ids.append(arg['_id'])
+            resulting_scores.append(np.array(
+                [self.__get_scores(qm, arg['emb']) for qm in query_matrices]
+            ))
+
+        arg_ids = np.array(arg_ids)
+
+        top_args = []
+        for query_scores in np.transpose(resulting_scores):
+            top_ids = np.argsort(query_scores)[::-1][:top_n]
+            top_args.append(arg_ids[top_ids])
+
+        return top_args
+
+    def store_query_results(self, coll, queries, args):
+        assert len(queries) == len(args)
+
+        coll.drop()
+        for q, args in zip(queries, args):
+            coll.insert_one({
+                'query_id': q.id,
+                'query_text': q.text,
+                'args': args.tolist(),
+            })
+        print(coll.find_one({}))
+
+    def __get_scores(self, query_matrix, arg_emb):
+        """ Dual Embedding similarity for query and args
 
         Args:
-            query_matrix (np.array): Vorverarbeitete Wörter der Query
-            arg_emb (numpy.array): Argument Text Embedding
+            query_matrix (:obj:`numpy.array`): embedded queries
+            arg_emb (:obj:`numpy.array`): argument embedding
 
         Returns:
             float: dual embedding similarity
         """
 
+        arg_emb = np.array(arg_emb)
         cos_sims = 1 - distance.cdist(
             query_matrix,
             np.expand_dims(arg_emb, axis=0),
             'cosine'
         )
+
         cos_sum = sum(cos_sims) / len(cos_sims)
         if np.isnan(cos_sum[0]):
             return 0.0
         else:
             return cos_sum[0]
-
-
-class Argument2Vec:
-    def __init__(self, cbow):
-        self.cbow = cbow
-        self.av = dict()
-
-    def build(self, train_csv_iterator):
-        if self.cbow is None:
-            print('Model kann nicht erstellt werden...')
-            return False
-
-        vector_size = self.cbow.model.vector_size
-
-        for row in tqdm(train_csv_iterator):
-            arg_id = row[0]
-            arg_text = row[1]
-
-            arg_emb, unk = Argument.to_vec(
-                arg_text, self.cbow.model, vector_size)
-            self.av[arg_id] = (arg_emb, unk)
-
-    # def most_similar(self, query, topn=5):
-    #     query_embeddings = [self.w2v_model.wv[word] for word in query.split()]
-    #     if topn == -1:
-    #         topn = len(self.tv)
-
-    #     ids = []
-    #     similarities = []
-
-    #     for (id, arg_emb) in self.tv.items():
-    #         cos_sim = 0
-    #         for q_emb in query_embeddings:
-    #             cos_sim += distance.cosine(np.transpose(q_emb), arg_emb)
-
-    #         cos_sim *= (1 / len(query_embeddings))
-    #         similarities.append(cos_sim)
-    #         ids.append(id)
-
-    #     similarities = np.asarray(similarities)
-    #     best_indices = np.argpartition(similarities, -topn)[-topn:]
-    #     best_indices = best_indices[np.argsort(similarities[best_indices])]
-
-    #     best_texts = []
-    #     for i in best_indices:
-    #         best_texts.append(ids[i])
-
-    #     return best_texts, np.sort(similarities)[::-1]
-
-    @staticmethod
-    def load(path):
-        """Falls es einen Index gibt, der gespeichert wurde, kann dieser hier
-        geladen werden. Dabei wird `bm25_index` definiert.
-
-        Args:
-            path (str): Pfad zur Datei
-        """
-
-        tick = time.time()
-
-        a2v = Argument2Vec(None)
-        with open(path, 'r') as f_in:
-            a2v.av = json.load(f_in)
-            for key, (v1, v2) in a2v.av.items():
-                if v1 is None:
-                    print(key, v1, v2)
-                else:
-                    a2v.av[key] = (np.asarray(v1), v2)
-
-        time_spent = time.time() - tick
-        print(
-            f"A2V: Benötigte zeit zum Laden von {len(a2v.av)} Argumenten: {time_spent:.2f}s")
-
-        return a2v
-
-    def store(self, path):
-        """Speichere den Index, falls dieser existiert, in eine Datei
-
-        Args:
-            path (str): Dateipfad
-        """
-
-        tick = time.time()
-
-        for key, (v1, v2) in self.av.items():
-            try:
-                self.av[key] = (v1.tolist(), v2)
-            except Exception as e:
-                print(key, v1, v2)
-                print(e)
-        with open(path, 'w') as f_out:
-            json.dump(self.av, f_out)
-
-        time_spent = time.time() - tick
-        print(
-            f"A2V: Benötigte zeit zum Speichern von {len(self.av)} Argumenten: {time_spent:.2f}s")
-
-
-class MixtureModel:
-    def __init__(self, a2v, bm25_manager):
-        self.bm25_manager = bm25_manager
-        self.a2v = a2v
-
-    def mmsims(self, query, alpha=0.75):
-        scores = self.bm25_manager.norm_scores(query)
-        dual_embedding = DualEmbedding(self.a2v.w2v_model)
-        dual_embedding.build()
-
-        for (id, (emb, _)) in self.a2v.av.items():
-            de_sim = dual_embedding.desim(query, emb)
-            bm25_sim = scores[id]
-            mm_sim = alpha * de_sim + (1 - alpha) * bm25_sim
-            scores[id] = (bm25_sim, de_sim, mm_sim)
-
-        keys_to_remove = [k for k in scores if isinstance(scores[k], float)]
-        for k in keys_to_remove:
-            del scores[k]  # Für diese existiert kein Dual Embedding
-
-        return scores

@@ -1,59 +1,53 @@
 import os
 import sys
+import numpy as np
 import rootpath
 import xml.etree.ElementTree as ET
+from collections import namedtuple
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
     import setup
-    from argU.preprocessing.tools import machine_model_clean
-    from argU.preprocessing.tools import sentiment_clean
+    from argU.preprocessing.texts import clean_to_nl
+    from argU.preprocessing.texts import clean_to_train
+    from argU.preprocessing.texts import clean_pos_tags
 except Exception as e:
-    print("Project intern dependencies could not be loaded...")
     print(e)
     sys.exit(0)
 
+Query = namedtuple('Query', 'id text')
 
-def read(start=-1, stop=-1):
-    """Erstelle 2 Listen mit IDs und topics der jeweiligen queries"""
 
-    query_ids = []
-    query_texts = []
+def read(directory):
+    """Read queries and clean them"""
 
-    tree = ET.parse(setup.TOPICS_PATH)
+    queries = []
+    tree = ET.parse(os.path.join(directory, 'topics.xml'))
     topics = tree.getroot()
 
     for topic in topics:
-        query_ids.append(topic[0].text)
-        query_texts.append(topic[1].text)
+        queries.append(
+            Query(topic[0].text, __clean(topic[1].text))
+        )
 
-    if stop != -1:
-        query_ids = query_ids[:stop]
-        query_texts = query_texts[:stop]
-
-    if start != -1:
-        query_ids = query_ids[start:]
-        query_texts = query_texts[start:]
-
-    return query_ids, query_texts
+    return queries
 
 
-def clean(query_texts):
-    for idx, text in enumerate(query_texts):
-        query_texts[idx] = machine_model_clean(sentiment_clean(text))
-        query_texts[idx] = query_texts[idx].replace('?', '')
-    return query_texts
+def __clean(q_text):
+    q_text = q_text.replace('?', '')
+    q_text = clean_to_nl(q_text)
+    q_text = clean_to_train(q_text)
+    q_text = clean_pos_tags(q_text)
+
+    return q_text
 
 
 if __name__ == '__main__':
-    import os
-    import rootpath
-    import sys
+    from argU.indexing.models import CBOW
+    from argU.indexing.models import DESM
 
-    RESOURCES_PATH = os.path.join(rootpath.detect(), 'resources/')
-    QUERIES_PATH = os.path.join(
-        RESOURCES_PATH, 'topics-automatic-runs-task-1.xml')
+    cbow = CBOW.load()
+    desm = DESM(cbow)
+    queries = read(setup.ROOT_PATH)
 
-    queries = read(QUERIES_PATH, start=5, stop=10)
-    cleaned_texts = clean(queries[1])
-    print(cleaned_texts)
+    print(desm.queries_to_emb(queries))
