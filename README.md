@@ -9,12 +9,6 @@ You build a system to support users who directly search for arguments, e.g., by 
 1. Download and extract the [Args.me Corpus](https://zenodo.org/record/3274636/files/argsme.zip)
 2. Put args-me.json and the topic.xml in your input directory
 
-## Tira Runs
-1. ` $ docker pull mongo `
-2. ` $ docker build -t argu . `
-3. ` $ chmod +x ./tira_run.sh `
-4. ` $ ./tira_run.sh -i $inputDataset -o $outputDir `
-
 ## Docker
 
 1. ` $ docker build -t argu . `
@@ -27,6 +21,12 @@ You build a system to support users who directly search for arguments, e.g., by 
 	- Output directory will get the results as run.txt
 4. ` $ docker stop argu-mongo `
 	- Remove MongoDB container
+
+## Tira Runs
+1. ` $ docker pull mongo `
+2. ` $ docker build -t argu . `
+3. ` $ chmod +x ./tira_run.sh `
+4. ` $ ./tira_run.sh -i $inputDataset -o $outputDir `
 
 ## Command Line
 
