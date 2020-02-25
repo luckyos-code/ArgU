@@ -111,13 +111,13 @@ if argparsed.merge:
         merged_args_list = [ma[0] for ma in merged_args]
 
         print(f'### {query_id} {desm_scores["query_text"]}')
-        print('---')
-        arguments.fancy_print(
-            coll_args,
-            merged_args_list[:20],
-            trans_dict=trans_dict,
-            arg_len=2000,
-        )
+        # print('---')
+        # arguments.fancy_print(
+        #     coll_args,
+        #     merged_args_list[:20],
+        #     trans_dict=trans_dict,
+        #     arg_len=2000,
+        # )
 
         # Sentiment Analysis
 

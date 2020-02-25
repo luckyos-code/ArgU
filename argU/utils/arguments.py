@@ -56,25 +56,17 @@ def get_NDCG(scores):
     res_opt = []
 
     scores_opt = sorted(scores, reverse=True)
-    print(scores)
-    print(scores_opt)
+    # print(scores)
+    # print(scores_opt)
+
+    v = 0
+    v_opt = 0
 
     for j, (s, s_opt) in enumerate(zip(scores, scores_opt)):
         i = j + 1
-
-        v = ((2 ** s) - 1) / math.log2(1 + i)
-        v_opt = (2 ** s_opt - 1) / math.log2(1 + i)
-
-        if i == 1:
-            res.append(v)
-            res_opt.append(v_opt)
-        else:
-            res.append(res[i - 2] + v)
-            res_opt.append(res_opt[i - 2] + v_opt)
-
-    res, res_opt = np.asarray(res), np.asarray(res_opt)
-
-    return res / res_opt
+        v += ((2 ** s) - 1) / math.log2(1 + i)
+        v_opt += (2 ** s_opt - 1) / math.log2(1 + i)
+    return v / v_opt
 
 
 def get_precision(relevances):
@@ -149,21 +141,21 @@ if __name__ == '__main__':
         '446913e7-2019-04-18T15:54:16Z-00002-000',
     ]
 
-    db = mongodb.load_db()
-    coll = db[setup.MONGO_DB_COL_ARGS]
-    coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
-    trans = dict()
-    for t in tqdm(coll_trans.find()):
-        trans[t['arg_id']] = t['_id']
+    # db = mongodb.load_db()
+    # coll = db[setup.MONGO_DB_COL_ARGS]
+    # coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
+    # trans = dict()
+    # for t in tqdm(coll_trans.find()):
+    #     trans[t['arg_id']] = t['_id']
 
     # =======================================
     # Arguments by ids
     # fancy_print(coll, [4688, 4690, 235, 13584, 13582, 24230, 11422])
 
-    a = coll.find_one(
-        {'_id': trans['e7b98175-2019-04-18T14:36:18Z-00002-000']}
-    )
-    print(a)
+    # a = coll.find_one(
+    #     {'_id': trans['e7b98175-2019-04-18T14:36:18Z-00002-000']}
+    # )
+    # print(a)
 
     # =======================================
     # Short arguments
@@ -184,58 +176,72 @@ if __name__ == '__main__':
     # =======================================
     # NDCG Test
 
-    # n_100_q1_gains = [3, 3, 1, 1, 0, 2, 0, 2,
-    #                   3, 3, 0, 0, 3, 3, 1, 0, 3, 2, 3, 2]
-    # n_100_q2_gains = [3, 0, 0, 0, 0, 3, 0, 3,
-    #                   0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0]
-    # n_100_q3_gains = [1]
-    # n_100_q4_gains = [3, 3, 0, 1, 2, 0, 0, 2, 0, 0]
-    # n_100_q5_gains = [3, 3, 1, 2, 1, 3, 3, 3,
-    #                   2, 3, 2, 1, 1, 2, 2, 1, 2, 1, 1, 0]
+    n_100_q1_gains = [3, 3, 1, 1, 0, 2, 0, 2,
+                      3, 3, 0, 0, 3, 3, 1, 0, 3, 2, 3, 2]
+    n_100_q2_gains = [3, 0, 0, 0, 0, 3, 0, 3,
+                      0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0]
+    n_100_q3_gains = [1]
+    n_100_q4_gains = [3, 3, 0, 1, 2, 0, 0, 2, 0, 0]
+    n_100_q5_gains = [3, 3, 1, 2, 1, 3, 3, 3,
+                      2, 3, 2, 1, 1, 2, 2, 1, 2, 1, 1, 0]
 
-    # n_500_q1_gains = [3, 3, 1, 2, 1, 2, 0, 0,
-    #                   0, 0, 3, 3, 1, 0, 1, 0, 3, 0, 0, 0]
-    # n_500_q2_gains = [3, 0, 2, 3, 3, 0, 0, 0,
-    #                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # n_500_q3_gains = [0, 1, 0]
-    # n_500_q4_gains = [3, 3, 2, 3, 1, 3, 1, 2,
-    #                   0, 1, 0, 2, 0, 0, 0, 0, 1, 1, 0, 2]
-    # n_500_q5_gains = [3, 3, 2, 1, 3, 2, 1, 3,
-    #                   3, 3, 3, 3, 2, 2, 3, 2, 1, 2, 1, 2]
+    n_500_q1_gains = [3, 3, 1, 2, 1, 2, 0, 0,
+                      0, 0, 3, 3, 1, 0, 1, 0, 3, 0, 0, 0]
+    n_500_q2_gains = [3, 0, 2, 3, 3, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    n_500_q3_gains = [0, 1, 0]
+    n_500_q4_gains = [3, 3, 2, 3, 1, 3, 1, 2,
+                      0, 1, 0, 2, 0, 0, 0, 0, 1, 1, 0, 2]
+    n_500_q5_gains = [3, 3, 2, 1, 3, 2, 1, 3,
+                      3, 3, 3, 3, 2, 2, 3, 2, 1, 2, 1, 2]
 
-    # n_1000_q1_gains = [3, 3, 1, 2, 3, 3, 1,
-    #                    2, 2, 1, 0, 1, 2, 1, 0, 0, 1, 0, 1, 2]
-    # n_1000_q2_gains = [3, 2, 0, 0, 2, 3, 0,
-    #                    3, 3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
-    # n_1000_q3_gains = [0, 0, 0, 0, 0, 1, 0,
-    #                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # n_1000_q4_gains = [3, 3, 3, 3, 3, 2, 2,
-    #                    3, 2, 3, 3, 1, 0, 3, 2, 2, 3, 3, 2, 2]
-    # n_1000_q5_gains = [3, 3, 2, 1, 3, 2, 1,
-    #                    3, 3, 3, 3, 3, 3, 2, 3, 3, 2, 3, 3, 2]
+    n_1000_q1_gains = [3, 3, 1, 2, 3, 3, 1,
+                       2, 2, 1, 0, 1, 2, 1, 0, 0, 1, 0, 1, 2]
+    n_1000_q2_gains = [3, 2, 0, 0, 2, 3, 0,
+                       3, 3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    n_1000_q3_gains = [0, 0, 0, 0, 0, 1, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    n_1000_q4_gains = [3, 3, 3, 3, 3, 2, 2,
+                       3, 2, 3, 3, 1, 0, 3, 2, 2, 3, 3, 2, 2]
+    n_1000_q5_gains = [3, 3, 2, 1, 3, 2, 1,
+                       3, 3, 3, 3, 3, 3, 2, 3, 3, 2, 3, 3, 2]
 
-    # n_1000_q1_inout_gains = [3, 3, 3, 2, 1, 2,
-    #                          1, 2, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0]
+    n_1000_q1_inout_gains = [3, 3, 3, 2, 1, 2,
+                             1, 2, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0]
 
-    # n_1000_q2_inout_gains = [2, 3, 2, 0, 2, 3,
-    #                          0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0]
+    n_1000_q2_inout_gains = [2, 3, 2, 0, 2, 3,
+                             0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0]
 
-    # n_1000_q3_inout_gains = [0, 0, 0, 0, 0, 0,
-    #                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    n_1000_q3_inout_gains = [0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    # n_1000_q4_inout_gains = [3, 3, 3, 3, 3, 2,
-    #                          2, 3, 2, 3, 3, 1, 3, 2, 3, 2, 2, 1, 3, 3]
+    n_1000_q4_inout_gains = [3, 3, 3, 3, 3, 2,
+                             2, 3, 2, 3, 3, 1, 3, 2, 3, 2, 2, 1, 3, 3]
 
-    # n_1000_q5_inout_gains = [3, 3, 1, 3, 2, 1,
-    #                          3, 3, 3, 3, 2, 3, 2, 3, 2, 2, 1, 1, 3, 1]
+    n_1000_q5_inout_gains = [3, 3, 1, 3, 2, 1,
+                             3, 3, 3, 3, 2, 3, 2, 3, 2, 2, 1, 1, 3, 1]
 
-    # res_NDCG = get_NDCG(n_1000_q1_gains)
-    # res_PREC = get_precision(n_1000_q1_gains)
+    n_100_gains = [n_100_q1_gains, n_100_q2_gains,
+                   n_100_q3_gains, n_100_q4_gains, n_100_q5_gains]
+    n_500_gains = [n_500_q1_gains, n_500_q2_gains,
+                   n_500_q3_gains, n_500_q4_gains, n_500_q5_gains]
+    n_1000_gains = [n_1000_q1_gains, n_1000_q2_gains,
+                    n_1000_q3_gains, n_1000_q4_gains, n_1000_q5_gains]
+    n_1000_inout_gains = [n_1000_q1_inout_gains, n_1000_q2_inout_gains,
+                          n_1000_q3_inout_gains, n_1000_q4_inout_gains, n_1000_q5_inout_gains]
 
-    # print(res_NDCG)
-    # print(res_PREC)
+    for i, n in enumerate(n_1000_inout_gains):
+        try:
+            res_NDCG = get_NDCG(n)
+            res_PREC = get_precision(n)
+        except Exception as e:
+            pass
+
+        print(f'{i+1}) PREC: {res_PREC}, NDCG: {res_NDCG}')
+    # print()
+    # print(np.sum(res_NDCG))
 
     # fancy_NDCG = ' & '.join([
-    #     str(round(n, 2)).replace('.', ',') for n in res_NDCG
+    # str(round(n, 2)).replace('.', ',') for n in res_NDCG
     # ])
     # print(fancy_NDCG)
