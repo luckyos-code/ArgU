@@ -10,28 +10,16 @@ WORKDIR /ArgU
 COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
-# Install needed apt packages
+# Install wget
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
-	wget \
-	unzip
+	wget
 
 # Install terrier-core in /terrier-core-4.2
 WORKDIR /
 RUN wget -nv --header "Referer: http://terrier.org/download/agree.shtml?terrier-core-4.2-bin.tar.gz" http://terrier.org/download/files/terrier-core-4.2-bin.tar.gz \
 	&& tar -zxvf terrier-core-4.2-bin.tar.gz \
 	&& rm terrier-core-4.2-bin.tar.gz
-
-# Nano for testing
-RUN apt-get update \
-	&& apt-get install nano
-
-# Get args-me.json and topics.xml
-WORKDIR /input
-RUN wget -nv https://zenodo.org/record/3274636/files/argsme.zip \
-	&& unzip argsme.zip \
-	&& rm argsme.zip
-COPY ./topics.xml /input/topics.xml
 
 # Get the whole app
 WORKDIR /ArgU
