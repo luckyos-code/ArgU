@@ -10,9 +10,10 @@ You build a system to support users who directly search for arguments, e.g., by 
 2. Put args-me.json and the topic.xml in your input directory
 
 ## Tira Runs
-1. ` $ chmod +x ./tira_run.sh `
-2. ` $ ./tira_run.sh -i $inputDataset -o $outputDir `
-	- Docker workflow from below but as a bash script
+1. ` $ docker pull mongo `
+2. ` $ docker build -t argu . `
+3. ` $ chmod +x ./tira_run.sh `
+4. ` $ ./tira_run.sh -i $inputDataset -o $outputDir `
 
 ## Docker
 
