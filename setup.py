@@ -30,7 +30,7 @@ TREC_PATH = os.path.join(RESOURCES_PATH, 'args-me.trec')
 TREC_PATH_TOPICS = os.path.join(RESOURCES_PATH, 'topics.trec')
 CBOW_PATH = os.path.join(RESOURCES_PATH, 'cbow.model')
 TERRIER_RESULTS_PATH = os.path.join(RESOURCES_PATH, 'terrier.res')
-OUTPUT_PATH = os.path.join(ROOT_PATH, 'output.res')
+OUTPUT_PATH = os.path.join(ROOT_PATH)
 
 SENTIMENTS_PATH = os.path.join(
     ROOT_PATH, 'argU/sentiment/results/argument_sentiments.csv'

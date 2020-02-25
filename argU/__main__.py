@@ -95,19 +95,17 @@ if argparsed.merge:
                 line = line.split()
                 if line[0] == query_id:
                     terrier_data[int(line[2])] = line[4]  # Arg
-
         merged_args = []
         for a in args:
             if a in terrier_data:
-                sents = coll_sents.find_one({'_id': a})
+                # sents = coll_sents.find_one({'_id': a})
+                # print(sents)
                 merged_args.append(
-                    (a, float(terrier_data[a]), sents['score'])
+                    (a, float(terrier_data[a]))
                 )
 
         merged_args.sort(key=lambda x: x[1], reverse=True)
-        # print(merged_args)
-        merged_args_list = [ma[0] for ma in merged_args]
-
+        # merged_args_list = [ma[0] for ma in merged_args]
         print(f'### {query_id} {desm_scores["query_text"]}')
         # print('---')
         # arguments.fancy_print(
@@ -119,15 +117,15 @@ if argparsed.merge:
 
         # Sentiment Analysis
 
-        output_dict[query_id] = merged_args_list
+        output_dict[query_id] = merged_args
 
     with open(os.path.join(argparsed.output, 'run.txt'), 'w') as f_out:
         for (id, args) in output_dict.items():
-            for i, arg_id in enumerate(args):
+            for i, (arg_id, score) in enumerate(args):
                 f_out.write(' '.join([
                     str(id), 'Q0', coll_trans.find_one(
                         {'_id': arg_id})['arg_id'], str(i + 1),
-                    'score...', setup.METHOD, '\n'
+                    str(score), setup.METHOD, '\n'
                 ]))
 
 
