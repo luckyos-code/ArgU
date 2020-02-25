@@ -76,12 +76,10 @@ if argparsed.merge:
     assert collection_exists(coll_res)
     assert setup.file_exists(setup.TERRIER_RESULTS_PATH)
 
-    trans_dict = new_id_to_args_id_dict(coll_trans)
-
     N = 1000
     print(f'N Value: {N}')
 
-    max_queries = 5
+    max_queries = -1
 
     output_dict = dict()
     for i, desm_scores in enumerate(coll_res.find()):
@@ -127,7 +125,8 @@ if argparsed.merge:
         for (id, args) in output_dict.items():
             for i, arg_id in enumerate(args):
                 f_out.write(' '.join([
-                    str(id), 'Q0', trans_dict[arg_id], str(i + 1),
+                    str(id), 'Q0', coll_trans.find_one(
+                        {'_id': arg_id})['arg_id'], str(i + 1),
                     'score...', setup.METHOD, '\n'
                 ]))
 
