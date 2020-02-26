@@ -26,7 +26,9 @@ for i, ct in tqdm(enumerate(coll_train.find())):
         break
     sent = coll_sents.find_one({'_id': ct['_id']})
     arg = coll_args.find_one({'_id': ct['_id']})
-    if sent['score'] < -0.1:
+    if sent == None:
+    	print(i)
+    elif sent['score'] < -0.1:
         if arg['premises'][0]['stance'] == 'PRO':
             countProNeg += 1
         else:
