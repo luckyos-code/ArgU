@@ -21,6 +21,9 @@ RUN wget -nv --header "Referer: http://terrier.org/download/agree.shtml?terrier-
 	&& tar -zxvf terrier-core-4.2-bin.tar.gz \
 	&& rm terrier-core-4.2-bin.tar.gz
 
+# Download NLTK data
+RUN python -m nltk.downloader 'averaged_perceptron_tagger' 'wordnet'
+
 # Get the whole app
 WORKDIR /ArgU
 COPY ./ ./
