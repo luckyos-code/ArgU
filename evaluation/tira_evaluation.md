@@ -7,10 +7,10 @@
 
 ### R2: Emotional is better
 ---
-* ` nDCG": "" `
-* ` nDCG@5": "" `
-* ` nDCG@10": "" `
-* ` QrelCoverage@10": "" `
+* ` nDCG": "0.053" `
+* ` nDCG@5": "0.085" `
+* ` nDCG@10": "0.116" `
+* ` QrelCoverage@10": "0.531" `
 
 ### R3: Neutral is better
 ---
