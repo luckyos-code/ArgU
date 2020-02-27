@@ -2,7 +2,6 @@
 
 **Argument Retrieval student project at Leipzig University for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
-You build a system to support users who directly search for arguments, e.g., by supporting their stance, or by aiding them in building a stance on topics of a general societal interest such as abandonment of plastic bottles, animal experiments, abortion, etc. This subtask targets argumentative conversations. You will retrieve documents from the focused crawl with content from online debate portals (idebate.org, debatepedia.org, debatewise.org) and from Reddit's ChangeMyView. Be sure to retrieve good ''strong'' arguments. Our human assessors will label the retrieved documents manually, both for their general topical relevance, and for argument quality dimensions such as: (1) whether an argumentative text is logically cogent, (2) whether it is rhetorically well-written, and (3) whether it contributes to the users' stance-building process, i.e., somewhat similar to the concept of "utility" (refer to this paper for more information on argument quality https://webis.de/downloads/publications/papers/stein_2017c.pdf). Each document will be assigned with a score 0, 1 or 2 for each dimension, where 0 means not relevant/cogent/well-written/utilized, 1 - relevant/cogent/well-written/utilized, and 2 - very relevant/cogent/well-written/utilized. We will use nDCG@5 to evaluate retrieval systems along the four dimensions.
 
 ## Prerequisites
 
@@ -58,15 +57,13 @@ You build a system to support users who directly search for arguments, e.g., by 
 
 ### (TODO) Report
 
-(Written in German)
+[TODO](doc/TODO.pdf) (Written in German)
 
-### Workflow (Deprecated/TODO)
+### Evaluation
 
-![doc/workflow-diagram.png](doc/workflow-diagram.png "workflow-diagram")
-
-### (TODO) Evaluation
-
-#### (TODO) Precision
+* [Report]((#report)) - Evaluation section
+* [Experiments](doc/experiments/) - Conducted experiments for the evaluation
+* [Tira](doc/tira_evaluation.md) - Tira evaluation results
 
 ### Modules
 
