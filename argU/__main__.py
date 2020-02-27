@@ -46,6 +46,13 @@ parser.add_argument(
     default=setup.OUTPUT_PATH,
 )
 
+parser.add_argument(
+    '-s', '--sentiments',
+    help='Sentiments mode',
+    default='None',
+    choices=['None', 'high_to_low', 'low_to_high']
+)
+
 argparsed = parser.parse_args()
 print(f"Args: {argparsed}")
 
@@ -98,14 +105,31 @@ if argparsed.merge:
         merged_args = []
         for a in args:
             if a in terrier_data:
-                # sents = coll_sents.find_one({'_id': a})
-                # print(sents)
+                sents = coll_sents.find_one({'_id': a})
+                if sents is None:
+                    print("BAD================================")
+                    sents = {'score': -0.1}
                 merged_args.append(
-                    (a, float(terrier_data[a]))
+                    (a, float(terrier_data[a]), sents['score'])
                 )
 
         merged_args.sort(key=lambda x: x[1], reverse=True)
-        # merged_args_list = [ma[0] for ma in merged_args]
+        merged_args = merged_args[:20]
+
+        if argparsed.sentiments != 'None':
+            merged_args_with_sents = []
+            for ma in merged_args:
+                dph, sent = ma[1], ma[2]
+                if argparsed.sentiments == 'high_to_low':
+                    dph = dph + dph * (abs(sent) / 2)
+                elif argparsed.sentiments == 'low_to_high':
+                    dph = dph - dph * (abs(sent) / 2)
+                merged_args_with_sents.append(
+                    (ma[0], dph, sent)
+                )
+            merged_args = merged_args_with_sents
+            merged_args.sort(key=lambda x: x[1], reverse=True)
+
         print(f'### {query_id} {desm_scores["query_text"]}')
         # print('---')
         # arguments.fancy_print(
@@ -121,7 +145,7 @@ if argparsed.merge:
 
     with open(os.path.join(argparsed.output, 'run.txt'), 'w') as f_out:
         for (id, args) in output_dict.items():
-            for i, (arg_id, score) in enumerate(args):
+            for i, (arg_id, score, sent) in enumerate(args):
                 f_out.write(' '.join([
                     str(id), 'Q0', coll_trans.find_one(
                         {'_id': arg_id})['arg_id'], str(i + 1),
