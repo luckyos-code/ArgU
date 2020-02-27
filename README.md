@@ -2,8 +2,12 @@
 
 **Argument Retrieval student project at Leipzig University for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
-You build a system to support users who directly search for arguments, e.g., by supporting their stance, or by aiding them in building a stance on topics of a general societal interest such as abandonment of plastic bottles, animal experiments, abortion, etc. This subtask targets argumentative conversations. You will retrieve documents from the focused crawl with content from online debate portals (idebate.org, debatepedia.org, debatewise.org) and from Reddit's ChangeMyView. Be sure to retrieve good ''strong'' arguments. Our human assessors will label the retrieved documents manually, both for their general topical relevance, and for argument quality dimensions such as: (1) whether an argumentative text is logically cogent, (2) whether it is rhetorically well-written, and (3) whether it contributes to the users' stance-building process, i.e., somewhat similar to the concept of "utility" (refer to this paper for more information on argument quality https://webis.de/downloads/publications/papers/stein_2017c.pdf). Each document will be assigned with a score 0, 1 or 2 for each dimension, where 0 means not relevant/cogent/well-written/utilized, 1 - relevant/cogent/well-written/utilized, and 2 - very relevant/cogent/well-written/utilized. We will use nDCG@5 to evaluate retrieval systems along the four dimensions.
+* [Report](evaluation/TODO.pdf) (German)
 
+## Prerequisites
+
+1. Download and extract the [Args.me Corpus](https://zenodo.org/record/3274636/files/argsme.zip)
+2. Put args-me.json and the topic.xml in your input directory
 
 ## Docker
 
@@ -18,14 +22,15 @@ You build a system to support users who directly search for arguments, e.g., by 
 4. ` $ docker stop argu-mongo `
 	- Remove MongoDB container
 
+## Tira Runs
+1. ` $ docker pull mongo `
+2. ` $ docker build -t argu . `
+3. ` $ chmod +x ./tira_run.sh `
+4. ` $ ./tira_run.sh -i $inputDataset -o $outputDir `
+
 ## Command Line
 
-### Get Requirements
-
-1. In `.../ArgU/` run: ` $ pip install -r requirements.txt `
-2. Download the [Args.me Corpus](https://zenodo.org/record/3274636/files/argsme.zip) and extract to `.../ArgU/resources/`
-
-## How to Run
+0. ` $ pip install -r requirements.txt `
 
 1. ` $ python argU/preprocessing/mongodb.py -i <input-dir-path> `
 	- Create mapping (mongoDB ID <--> argument.id); store into MongoDB
@@ -37,7 +42,7 @@ You build a system to support users who directly search for arguments, e.g., by 
 3. ` $ python argU/indexing/a2v.py -f `
 	- Generate CBOW
 	- Generate argument embeddings and store them into MongoDB
-4. Run Terrier (TODO)
+4. Install and run Terrier (see [Dockerfile](Dockerfile))
 	- Calculate DPH for queries
 	- copy result file in [resources](resources/)
 5. ` $ python -m argU -d `
@@ -47,21 +52,15 @@ You build a system to support users who directly search for arguments, e.g., by 
   
 ### Submodul Excecution
 
-* For individual moduls, cd into directories and run ` $ python -m [modulname] `
+* For individual moduls, cd into directory and run ` $ python -m [modulname] `
+
+## Evaluation
+
+* [Report](evaluation/TODO.pdf) (German)
+* [Experiments](evaluation/experiments/) - Conducted experiments for the evaluation
+* [Tira](evaluation/tira_evaluation.md) - Tira evaluation results
 
 ## Documentation
-
-### (WIP) Report
-
-(Written in German)
-
-### Workflow
-
-![doc/workflow-diagram.png](doc/workflow-diagram.png "workflow-diagram")
-
-### (WIP) Evaluation
-
-#### (WIP) Precision
 
 ### Modules
 
