@@ -2,6 +2,7 @@
 
 **Argument Retrieval student project at Leipzig University for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
+* [Report](evaluation/TODO.pdf) (German)
 
 ## Prerequisites
 
@@ -53,17 +54,13 @@
 
 * For individual moduls, cd into directory and run ` $ python -m [modulname] `
 
+## Evaluation
+
+* [Report](evaluation/TODO.pdf) (German)
+* [Experiments](evaluation/experiments/) - Conducted experiments for the evaluation
+* [Tira](evaluation/tira_evaluation.md) - Tira evaluation results
+
 ## Documentation
-
-### (TODO) Report
-
-[TODO](doc/TODO.pdf) (Written in German)
-
-### Evaluation
-
-* [Report]((#report)) - Evaluation section
-* [Experiments](doc/experiments/) - Conducted experiments for the evaluation
-* [Tira](doc/tira_evaluation.md) - Tira evaluation results
 
 ### Modules
 
