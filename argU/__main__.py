@@ -50,7 +50,7 @@ parser.add_argument(
     '-s', '--sentiments',
     help='Sentiments mode',
     default='None',
-    choices=['None', 'high_to_low', 'low_to_high']
+    choices=['None', 'neutral', 'emotional']
 )
 
 argparsed = parser.parse_args()
@@ -120,9 +120,9 @@ if argparsed.merge:
             merged_args_with_sents = []
             for ma in merged_args:
                 dph, sent = ma[1], ma[2]
-                if argparsed.sentiments == 'high_to_low':
+                if argparsed.sentiments == 'emotional':
                     dph = dph + dph * (abs(sent) / 2)
-                elif argparsed.sentiments == 'low_to_high':
+                elif argparsed.sentiments == 'neutral':
                     dph = dph - dph * (abs(sent) / 2)
                 merged_args_with_sents.append(
                     (ma[0], dph, sent)
