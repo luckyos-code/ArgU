@@ -15,8 +15,12 @@
 	- Build the image
 2. ` $ docker run --name argu-mongo -p 27017:27017 -d --rm mongo `
 	- Starts a MonoDB container
-3. ` $ docker run -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
+3. ` $ docker run -e RUNTYPE=<run-type> -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
 	- Runs the container
+	- Run Types
+		- ` None `: No sentiments
+		- ` emotional `: Emotional is better
+		- ` neutral `: Neutral is better
 	- Input directory with args-me.json and topics.xml
 	- Output directory will get the results as run.txt
 4. ` $ docker stop argu-mongo `
@@ -26,7 +30,11 @@
 1. ` $ docker pull mongo `
 2. ` $ docker build -t argu . `
 3. ` $ chmod +x ./tira_run.sh `
-4. ` $ ./tira_run.sh -i $inputDataset -o $outputDir `
+4. ` $ ./tira_run.sh -s <run-type> -i $inputDataset -o $outputDir `
+	- Run Types
+		- ` None `: No sentiments
+		- ` emotional `: Emotional is better
+		- ` neutral `: Neutral is better
 
 ## Command Line
 
@@ -47,8 +55,13 @@
 	- copy result file in [resources](resources/)
 5. ` $ python -m argU -d `
 	- Compare given queries with argument embeddings; store Top-N DESM scores into MongoDB
-6. ` $ python -m argU -m -o <output-dir-path> `
-	- Merge DESM, Terrier and Sentiments to create final scores
+6. Merge DESM, Terrier and Sentiments to create final scores
+	a. ` $ python -m argU -m -s None -o <output-dir-path> `
+		* R1: No sentiments
+	b. ` $ python -m argU -m -s emotional -o <output-dir-path> `
+		* R2: Emotional is better
+	c. ` $ python -m argU -m -s neutral -o <output-dir-path> `
+		* R3: Neutral is better
   
 ### Submodul Excecution
 

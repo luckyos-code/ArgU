@@ -38,4 +38,4 @@ CMD python argU/preprocessing/mongodb.py -i /input \
 	&& cp /terrier-core-4.2/var/results/DPH_0.res /ArgU/resources/terrier.res \
 	&& rm /terrier-core-4.2/var/results/DPH_0.res \
 	&& python -m argU -d \
-	&& python -m argU -m -o /output
+	&& python -m argU -m -s $RUNTYPE -o /output
