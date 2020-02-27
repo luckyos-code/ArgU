@@ -106,4 +106,7 @@ venv.bak/
 # additional stuff
 resources/*
 
-!resources/stopwords_eng.txt
+run.txt
+
+Pipfile
+Pipfile.lock
