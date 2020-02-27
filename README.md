@@ -15,7 +15,7 @@
 	- Build the image
 2. ` $ docker run --name argu-mongo -p 27017:27017 -d --rm mongo `
 	- Starts a MonoDB container
-3. ` $ docker run -e RUNTYPE=<run-type> -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
+3. ` $ docker run -e RUN_TYPE=<run-type> -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
 	- Runs the container
 	- Run Types
 		- ` None `: No sentiments

@@ -1,6 +1,6 @@
 #! /bin/bash
 
-while getopts S:i:o: option
+while getopts s:i:o: option
 do
 case "${option}"
 in
@@ -11,5 +11,5 @@ esac
 done
 
 docker run --name argu-mongo -p 27017:27017 -d --rm mongo
-docker run -e RUNTYPE=$runType -v $inputDataset:/input -v $outputDir:/output --name argu --rm -it --network="host" argu
+docker run -e RUN_TYPE=$runType -v $inputDataset:/input -v $outputDir:/output --name argu --rm -it --network="host" argu
 docker stop argu-mongo
