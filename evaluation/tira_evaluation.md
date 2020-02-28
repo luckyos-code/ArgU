@@ -14,7 +14,7 @@
 
 ### R3: Neutral is better
 ---
-* ` nDCG: "" `
-* ` nDCG@5: "" `
-* ` nDCG@10: "" `
-* ` QrelCoverage@10: "" `
+* ` nDCG: "0.047" `
+* ` nDCG@5: "0.036" `
+* ` nDCG@10: "0.068" `
+* ` QrelCoverage@10: "0.347" `
