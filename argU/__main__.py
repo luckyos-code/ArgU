@@ -144,12 +144,17 @@ if argparsed.merge:
         output_dict[query_id] = merged_args
 
     with open(os.path.join(argparsed.output, 'run.txt'), 'w') as f_out:
+    	mehtod = setup.METHOD_NONE
+        if argparsed.sentiments == 'emotional':
+            mehtod = setup.METHOD_EMOTIONAL
+        elif argparsed.sentiments == 'neutral':
+            mehtod = setup.METHOD_NEUTRAL
         for (id, args) in output_dict.items():
             for i, (arg_id, score, sent) in enumerate(args):
                 f_out.write(' '.join([
                     str(id), 'Q0', coll_trans.find_one(
                         {'_id': arg_id})['arg_id'], str(i + 1),
-                    str(score), setup.METHOD, '\n'
+                    str(score), method, '\n'
                 ]))
 
 
