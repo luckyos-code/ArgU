@@ -49,8 +49,8 @@ parser.add_argument(
 parser.add_argument(
     '-s', '--sentiments',
     help='Sentiments mode',
-    default='None',
-    choices=['None', 'neutral', 'emotional']
+    default='keep',
+    choices=['keep', 'neutral', 'emotional']
 )
 
 argparsed = parser.parse_args()
@@ -116,7 +116,7 @@ if argparsed.merge:
         merged_args.sort(key=lambda x: x[1], reverse=True)
         merged_args = merged_args[:20]
 
-        if argparsed.sentiments != 'None':
+        if argparsed.sentiments != 'keep':
             merged_args_with_sents = []
             for ma in merged_args:
                 dph, sent = ma[1], ma[2]
