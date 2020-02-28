@@ -144,7 +144,7 @@ if argparsed.merge:
         output_dict[query_id] = merged_args
 
     with open(os.path.join(argparsed.output, 'run.txt'), 'w') as f_out:
-    	method = setup.METHOD_NO
+        method = setup.METHOD_NO
         if argparsed.sentiments == 'emotional':
             method = setup.METHOD_EMOTIONAL
         elif argparsed.sentiments == 'neutral':
