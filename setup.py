@@ -41,7 +41,9 @@ SENTIMENTS_CONFIG = {
     'quoting': csv.QUOTE_MINIMAL,
 }
 
-METHOD = 'ulT1DetroitnitzCbowDPHSent'
+METHOD_NONE = 'ulT1DetroitnitzCbowDPHSentNone'
+METHOD_EMOTIONAL = 'ulT1DetroitnitzCbowDPHSentEmotional'
+METHOD_NEUTRAL = 'ulT1DetroitnitzCbowDPHSentNeutral'
 
 
 def assert_file_exists(path):
