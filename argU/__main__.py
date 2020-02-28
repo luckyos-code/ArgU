@@ -114,7 +114,7 @@ if argparsed.merge:
                 )
 
         merged_args.sort(key=lambda x: x[1], reverse=True)
-        merged_args = merged_args[:20]
+        # merged_args = merged_args[:20]
 
         if argparsed.sentiments != 'no':
             merged_args_with_sents = []
