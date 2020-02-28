@@ -41,7 +41,7 @@ SENTIMENTS_CONFIG = {
     'quoting': csv.QUOTE_MINIMAL,
 }
 
-METHOD_NONE = 'ulT1DetroitnitzCbowDPHSentNone'
+METHOD_NO = 'ulT1DetroitnitzCbowDPHSentNo'
 METHOD_EMOTIONAL = 'ulT1DetroitnitzCbowDPHSentEmotional'
 METHOD_NEUTRAL = 'ulT1DetroitnitzCbowDPHSentNeutral'
 

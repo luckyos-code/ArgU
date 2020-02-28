@@ -19,7 +19,7 @@
 3. ` $ chmod +x ./tira_run.sh `
 4. ` $ ./tira_run.sh -s <run-type> -i $inputDataset -o $outputDir `
 	- Run Types
-		- ` None `: No sentiments
+		- ` no `: No sentiments
 		- ` emotional `: Emotional is better
 		- ` neutral `: Neutral is better
 
@@ -32,7 +32,7 @@
 3. ` $ docker run -e RUN_TYPE=<run-type> -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
 	- Runs the ArgU container
 	- Run Types
-		- ` None `: No sentiments
+		- ` no `: No sentiments
 		- ` emotional `: Emotional is better
 		- ` neutral `: Neutral is better
 	- Input directory with args-me.json and topics.xml
@@ -60,7 +60,7 @@
 5. ` $ python -m argU -d `
 	- Compare given queries with argument embeddings; store Top-N DESM scores into MongoDB
 6. Merge DESM, Terrier and Sentiments to create final scores
-	1. ` $ python -m argU -m -s None -o <output-dir-path> `
+	1. ` $ python -m argU -m -s no -o <output-dir-path> `
 		* R1: No sentiments
 	2. ` $ python -m argU -m -s emotional -o <output-dir-path> `
 		* R2: Emotional is better
