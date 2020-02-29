@@ -1,20 +1,20 @@
 ### R1: No sentiments
 ---
-* ` nDCG: "0.237" `
-* ` nDCG@5: "0.057" `
-* ` nDCG@10: "0.07" `
-* ` QrelCoverage@10: "0.327" `
+* ` nDCG: "0.235" `
+* ` nDCG@5: "0.063" `
+* ` nDCG@10: "0.075" `
+* ` QrelCoverage@10: "0.347" `
 
 ### R2: Emotional is better
 ---
-* ` nDCG": "0.053" `
-* ` nDCG@5": "0.085" `
-* ` nDCG@10": "0.116" `
-* ` QrelCoverage@10": "0.531" `
+* ` nDCG": "0.254" `
+* ` nDCG@5": "0.116" `
+* ` nDCG@10": "0.152" `
+* ` QrelCoverage@10": "0.673" `
 
-### R3: Neutral is better
+### R3: Neutral is better)
 ---
-* ` nDCG: "0.047" `
-* ` nDCG@5: "0.036" `
-* ` nDCG@10: "0.068" `
-* ` QrelCoverage@10: "0.347" `
+* ` nDCG: "0.231" `
+* ` nDCG@5: "0.022" `
+* ` nDCG@10: "0.065" `
+* ` QrelCoverage@10: "0.367" `
