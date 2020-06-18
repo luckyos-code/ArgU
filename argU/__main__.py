@@ -140,8 +140,15 @@ if argparsed.merge:
         # )
 
         # Sentiment Analysis
-
-        output_dict[query_id] = merged_args
+        
+        if len(merged_args) != 0:
+            output_dict[query_id] = merged_args
+        else:
+            output_dict[query_id] = [(
+                '10113b57-2019-04-18T17:05:08Z-00001-000',
+                0.0,
+                0.0,
+            )]
 
     with open(os.path.join(argparsed.output, 'run.txt'), 'w') as f_out:
         method = setup.METHOD_NO
