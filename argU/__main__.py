@@ -158,10 +158,14 @@ if argparsed.merge:
             method = setup.METHOD_NEUTRAL
         for (id, args) in output_dict.items():
             for i, (arg_id, score, sent) in enumerate(args):
+                trans_id = ''
+                try:
+                    trans_id = coll_trans.find_one({'_id': arg_id})['arg_id']
+                except:
+                    trans_id = arg_id
+              
                 f_out.write(' '.join([
-                    str(id), 'Q0', coll_trans.find_one(
-                        {'_id': arg_id})['arg_id'], str(i + 1),
-                    str(score), method, '\n'
+                    str(id), 'Q0', trans_id, str(i + 1), str(score), method, '\n'
                 ]))
 
 
