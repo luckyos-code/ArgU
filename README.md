@@ -1,4 +1,4 @@
-# ArgU
+# SentArg: A Hybrid Text2Vec/DPH Model with Sentiment Analysis Refinement
 
 **Argument retrieval project for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
@@ -7,7 +7,7 @@
 * [Touché report](reports/touche_report.pdf) (English)
 * [Lab report](reports/lab_report.pdf) (German)
 * [Tira](evaluation/tira_evaluation.md) - Tira evaluation results (on original dataset)
-* [Experiments](evaluation/experiments/) - Conducted experiments for the evaluation
+* [Experiments](evaluation/experiments/) - Conducted experiments for evaluation
 
 ## Prerequisites
 
