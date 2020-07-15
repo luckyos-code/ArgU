@@ -1,6 +1,6 @@
 # SentArg: A Hybrid Text2Vec/DPH Model with Sentiment Analysis Refinement
 
-**Argument retrieval project for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
+**Argument retrieval model for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
 ## Evaluation
 
