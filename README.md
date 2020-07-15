@@ -5,7 +5,7 @@
 ## Evaluation
 
 * [Touché report](reports/touche_report.pdf) (English)
-* [Lab report](reports/lab_report.pdf) (German)
+* [Old lab report](reports/lab_report.pdf) (German)
 * [Tira](evaluation/tira_evaluation.md) - Tira evaluation results (on original dataset)
 * [Experiments](evaluation/experiments/) - Conducted experiments for evaluation
 
