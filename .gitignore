@@ -106,6 +106,7 @@ venv.bak/
 # additional stuff
 .idea
 resources/*
+!resources/stopwords_eng.txt
 
 run.txt
 

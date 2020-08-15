@@ -5,11 +5,8 @@ import rootpath
 ROOT_PATH = rootpath.detect()
 RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
 
-RESOURCES_PATH = os.path.join(ROOT_PATH, 'resources/')
-
 if not os.path.isdir(RESOURCES_PATH):
     os.mkdir(RESOURCES_PATH)
-    print('Resource directory created...')
 
 IMAGES_PATH = os.path.join(RESOURCES_PATH, 'images/')
 STOPWORDS_PATH = os.path.join(ROOT_PATH, 'stopwords_eng.txt')
