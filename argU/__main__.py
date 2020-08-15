@@ -167,32 +167,3 @@ if argparsed.merge:
                 f_out.write(' '.join([
                     str(id), 'Q0', trans_id, str(i + 1), str(score), method, '\n'
                 ]))
-
-
-# for i, res in enumerate(coll_res.find()):
-#     if i == 3:
-#         break
-#     args = arguments.find(coll_args, res['args'])
-#     print(res['query_text'])
-#     print('=' * 40)
-#     for a in args:
-#         print('> ', Argument.get_text(a)[:200])
-#     print()
-
-    # if args.mode == 'retrieve' or args.mode == 'collect':
-
-    #     # Speichere Argumente in dem passenden Output Format
-    #     queries_args = scores.evaluate(threshold=0.5)
-
-    #     with open(setup.RUN_PATH, 'w') as f_out:
-    #         for (query_id, query_text, args) in queries_args:
-    #             for i, arg in enumerate(args):
-    #                 f_out.write(' '.join([
-    #                     query_id,
-    #                     'Q0',
-    #                     arg[0],
-    #                     str(i + 1),
-    #                     str(arg[1]),
-    #                     method,
-    #                     '\n',
-    #                 ]))
