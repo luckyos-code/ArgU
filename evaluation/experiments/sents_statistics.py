@@ -6,14 +6,14 @@ from collections import Counter
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.preprocessing.mongodb import load_db
 except Exception as e:
     print(e)
     sys.exit(0)
 
 db = load_db()
-coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
+coll_sents = db[settings.MONGO_DB_COL_SENTIMENTS]
 
 values = []
 for s in tqdm(coll_sents.find()):

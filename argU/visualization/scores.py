@@ -7,7 +7,7 @@ import rootpath
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
 except Exception as e:
     print("Project intern dependencies could not be loaded...")
     print(e)
@@ -16,8 +16,8 @@ except Exception as e:
 
 def draw_query_scores(alpha=None, use_final=True, use_desim=True, use_bm25=True, use_sents=False):
 
-    with open(setup.SCORES_PATH, 'r', newline='', encoding='utf-8') as f_in:
-        reader = csv.reader(f_in, **setup.SCORES_CONFIG)
+    with open(settings.SCORES_PATH, 'r', newline='', encoding='utf-8') as f_in:
+        reader = csv.reader(f_in, **settings.SCORES_CONFIG)
 
         for (_, query_text, top_args) in reader:
             top_args = json.loads(top_args)
@@ -43,7 +43,7 @@ def draw_query_scores(alpha=None, use_final=True, use_desim=True, use_bm25=True,
                 final_with_sents.append(f_sent)
 
             file_name = '_'.join(query_text.split()) + '.png'
-            file_path = os.path.join(setup.IMAGES_PATH, file_name)
+            file_path = os.path.join(settings.IMAGES_PATH, file_name)
 
             x = list(range(0, len(desim)))
             plt.title(file_name)

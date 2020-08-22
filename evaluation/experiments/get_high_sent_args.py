@@ -1,12 +1,10 @@
 import sys
 import os
 import rootpath
-from tqdm import tqdm
-from collections import Counter
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.preprocessing.mongodb import load_db
     from argU.utils.arguments import Argument
 except Exception as e:
@@ -15,10 +13,10 @@ except Exception as e:
 
 db = load_db()
 
-coll_args = db[setup.MONGO_DB_COL_ARGS]
-coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
-coll_args_train = db[setup.MONGO_DB_COL_TRAIN]
-coll_args_trans = db[setup.MONGO_DB_COL_TRANSLATION]
+coll_args = db[settings.MONGO_DB_COL_ARGS]
+coll_sents = db[settings.MONGO_DB_COL_SENTIMENTS]
+coll_args_train = db[settings.MONGO_DB_COL_TRAIN]
+coll_args_trans = db[settings.MONGO_DB_COL_TRANSLATION]
 
 number_of_args = 100
 max_arg_len = 4000

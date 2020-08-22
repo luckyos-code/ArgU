@@ -5,16 +5,16 @@ from tqdm import tqdm
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.preprocessing.mongodb import load_db
 except Exception as e:
     print(e)
     sys.exit(0)
 
 db = load_db()
-coll_args = db[setup.MONGO_DB_COL_ARGS]
-coll_train = db[setup.MONGO_DB_COL_TRAIN]
-coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
+coll_args = db[settings.MONGO_DB_COL_ARGS]
+coll_train = db[settings.MONGO_DB_COL_TRAIN]
+coll_sents = db[settings.MONGO_DB_COL_SENTIMENTS]
 
 values = {}
 max_args = -1

@@ -1,30 +1,19 @@
-
-import csv
-import json
-import os
-import sys
-import rootpath
 import time
-from tqdm import tqdm
 
 import numpy as np
+from gensim.models import KeyedVectors
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
-from gensim.models import KeyedVectors
 from scipy.spatial import distance
+from tqdm import tqdm
 
-try:
-    sys.path.append(os.path.join(rootpath.detect()))
-    import setup
-except Exception as e:
-    print("Project intern dependencies could not be loaded...")
-    print(e)
-    sys.exit(0)
+from argU import settings
+from argU.database.mongodb import MongoDB
+from argU.preprocessing.nlp import token_variants
+from argU.utils.reader import get_queries
 
 
 class EpochLogger(CallbackAny2Vec):
-    '''Callback to log information about training'''
-
     def __init__(self, store_path=None, epochs_store=1):
         self.epoch = 1
         self.epochs_store = epochs_store
@@ -41,7 +30,7 @@ class EpochLogger(CallbackAny2Vec):
         self.last_time = time.time()
         if self.epoch % self.epochs_store == 0 and self.store_path is not None:
             model.save(self.store_path)
-            print("Modell gespeichert...")
+            print("Model stored ...")
         self.epoch += 1
 
 
@@ -50,192 +39,269 @@ class CBOW:
 
     def __init__(self):
         self.model = None
+        self.default_emb = None
+
+    def __str__(self):
+        if self.model is None:
+            return 'Model not initialized ...'
+        else:
+            return f"""
+                Continuous Bag of Words Model
+                -----------------------------
+                
+                Embedding length: {self.model.vector_size}
+                Vocabulary size: {len(self.model.wv.vocab)}
+                Example 'drugs' similarities: {self.model.most_similar(positive=['drugs'], topn=5)} ...
+                Default embedding (First 5): {self.default_emb[:5]} ...
+                Most sim. to default embedding: {self.model.wv.most_similar(positive=[self.default_emb], topn=5)} ...
+            """
 
     @property
     def loaded(self):
         return self.model is not None
 
-    def build(self, iterable, min_count=5, size=300, window=3):
+    @property
+    def out_model(self):
+        model_out = KeyedVectors(self.model.vector_size)
+        model_out.vocab = self.model.wv.vocab
+        model_out.index2word = self.model.wv.index2word
+        model_out.vectors = self.model.trainables.syn1neg
+        return model_out
+
+    def switch_to_out_embedding(self):
+        self.model = self.out_model
+
+    def train(self, iterable, min_count=5, size=300, window=3):
         self.model = Word2Vec(
             iterable,
             size=size,
             window=window,
             min_count=min_count,
             workers=4,
-            callbacks=[EpochLogger(store_path=setup.CBOW_PATH)]
+            callbacks=[EpochLogger(store_path=settings.CBOW_PATH)]
         )
+        self._init_default_emb()
 
     def store(self):
-        """ Store CBOW model """
+        self.model.save(settings.CBOW_PATH)
 
-        tick = time.time()
-        self.model.save(setup.CBOW_PATH)
-        time_spent = time.time() - tick
-        print(f"Time to store CBOW: {time_spent:.2f}s")
+    def _init_default_emb(self):
+        assert self.model is not None, 'Model has not been initialized yet!'
+
+        emb = np.zeros((self.model.vector_size,))
+        top_n = 100
+
+        for token in self.model.wv.index2entity[:top_n]:
+            emb += self.model.wv[token]
+
+        self.default_emb = emb / top_n
 
     @staticmethod
     def load():
-
-        print("Load CBOW...")
-        tick = time.time()
-        cbow = CBOW()
-        cbow.model = Word2Vec.load(setup.CBOW_PATH)
-        time_spent = time.time() - tick
-
-        print(f"Time needed: {time_spent:.2f}s")
-        return cbow
-
-
-diff_words = set([])
+        try:
+            cbow = CBOW()
+            cbow.model = Word2Vec.load(settings.CBOW_PATH)
+            cbow._init_default_emb()
+            return cbow
+        except Exception as e:
+            print("Model could not be loaded ...")
+            raise e
 
 
-class DESM:
-    def __init__(self, cbow):
-        self.vector_size = cbow.model.vector_size
-        self.model_in = cbow.model
-        self.model_out = self.__init_model_out()
+class InEmbedding:
+    def __init__(self, *, cbow):
+        self.model = self._init_model(cbow)
+        self.default_emb = cbow.default_emb
 
-    def __init_model_out(self):
-        """Create KeyVectors for w_OUT"""
+    def _init_model(self, cbow):
+        return cbow.model
 
-        model_out = KeyedVectors(self.vector_size)
-        model_out.vocab = self.model_in.wv.vocab
-        model_out.index2word = self.model_in.wv.index2word
-        model_out.vectors = self.model_in.trainables.syn1neg
-        return model_out
+    def text_to_emb(self, text):
+        emb_matrix = self.text_to_emb_matrix(text)
+        vec = self._emb_matrix_to_vec(emb_matrix)
 
-    def __get_term_variants(self, term):
-        return [
-            term,
-            term[0].lower() + term[1:],
-            term.lower(),
-        ]
-
-    def arg_to_emb(self, arg_train, model_type='in'):
-        if model_type == 'in':
-            wv = self.model_in.wv
-        elif model_type == 'out':
-            wv = self.model_out
-        else:
-            assert False, 'Wrong model type. Choose in or out...'
-
-        text = arg_train['text'].split()
-        emb_matrix = np.zeros(
-            (len(text), wv.vector_size)
-        )
-
-        unk = 0
-        for i, term in enumerate(text):
-            term_vars = self.__get_term_variants(term)
-            for tv in term_vars:
-                if tv in wv.vocab:
-                    emb = wv[tv]
-                    emb_matrix[i] = emb / np.linalg.norm(emb)
-                    break
-                if i == len(term_vars):
-                    unk += 1
-
-        vec = np.sum(emb_matrix, axis=0) / (emb_matrix.shape[0])
-
-        # print(wv.most_similar(positive=[vec], topn=10))
-        # print(f'Unk. count: {unk}')
-
-        # for (w, s) in wv.most_similar(positive=[vec], topn=10):
-        # diff_words.add(w)
-        # print(diff_words)
-        # print(len(diff_words))
         return vec
 
-    def queries_to_emb(self, queries, model_type='in'):
-        if model_type == 'in':
-            model = self.model_in
-        elif model_type == 'out':
-            model = self.model_out
-        else:
-            assert False, 'Wrong model type. Choose in or out...'
+    def text_to_emb_matrix(self, text):
+        tokens = text.split()
+        emb_matrix = self._default_emb_matrix(tokens)
 
-        query_embs = []
-        unk_all = 0
-        for query in queries:
-            terms = query.text.split()
-            emb_matrix = np.zeros((len(terms), model.vector_size))
-            unk = 0
-            for i, term in enumerate(terms):
-                term_vars = self.__get_term_variants(term)
-                for tv in term_vars:
-                    if tv in model.wv.vocab:
-                        emb = model.wv.word_vec(tv)
-                        emb_matrix[i] = emb
-                        break
-                    if i == len(term_vars):
-                        unk += 1
+        for i, token in enumerate(tokens):
+            emb_matrix[i] = self._token_to_emb(token)
 
-            print((
-                f'[{query.id}] {query.text}  {emb_matrix.shape} -> '
-                f'{unk} von {len(query.text.split())} Wörtern unbekannt'
-            ))
-            # for i, emb in enumerate(emb_matrix):
-            # most_sim = model.wv.most_similar(positive=[emb], topn=4)
-            # print(f'\t{terms[i]} -> {most_sim}')
-            print()
-            unk_all += unk
-            query_embs.append(emb_matrix)
-        print(f'Number of queries: {len(query_embs)}')
-        print(f'Number of unknown words: {unk_all}')
-        return query_embs
+        return emb_matrix
 
-    def evaluate_queries(self, query_matrices, coll_emb, top_n=500, max_args=-1):
-        resulting_scores = []
-        arg_ids = []
-        for i, arg in tqdm(enumerate(coll_emb.find())):
-            if i == max_args:
+    def _default_emb_matrix(self, tokens):
+        return np.zeros((len(tokens), self.model.vector_size))
+
+    def _emb_matrix_to_vec(self, emb_matrix):
+        return np.sum(emb_matrix, axis=0) / (emb_matrix.shape[0])
+
+    def _token_to_emb(self, token):
+        for tv in token_variants(token):
+            if self._emb_exists(tv):
+                return self._create_norm_emb(self.model.wv[tv])
+        return self._create_norm_emb(self.default_emb)
+
+    def _emb_exists(self, token):
+        return token in self.model.wv.vocab
+
+    def _create_norm_emb(self, emb):
+        return emb / np.linalg.norm(emb)
+
+
+class OutEmbedding(InEmbedding):
+    def __init__(self, *, cbow):
+        super().__init__(cbow=cbow)
+
+    def _init_model(self, cbow):
+        return cbow.out_model
+
+
+class Desm:
+    """
+    Args:
+        _cos_sim_matrix (:obj:`np.array`): rows = queries, columns = arguments, cell = cos similarity
+    """
+
+    def __init__(self, *, emb_type):
+        self.emb_type = emb_type
+        self._queries_emb_matrices = None
+        self._cos_sim_matrix = None
+        self._queries_dict = {}
+        self._query_ids = []
+        self._arg_ids = []
+        self._init()
+
+    def __str__(self):
+        return f"""
+            DESM Model similarities
+            -----------------------
+            
+            Cos-Sim Matrix: {self._cos_sim_matrix.shape}
+            Queries: {len(self.query_ids)}
+            Arguments: {len(self.arg_ids)}
+        """
+
+    @property
+    def query_ids(self):
+        return self._query_ids
+
+    @property
+    def arg_ids(self):
+        return self._arg_ids
+
+    @property
+    def cos_sim_matrix(self):
+        return self._cos_sim_matrix
+
+    def query_results_iterator(self, *, args_topn=100):
+        for query_id, query_arguments_cos_sims in zip(self._query_ids, self._cos_sim_matrix):
+            yield query_id, self._query_topn_args(query_arguments_cos_sims, args_topn)
+
+    def print_examples(self, *, queries_num, args_topn):
+        mongo_db = MongoDB()
+        for i, (query_id, top_query_args) in enumerate(self.query_results_iterator(args_topn=args_topn)):
+            if i == queries_num:
                 break
-            arg_ids.append(arg['_id'])
-            resulting_scores.append(np.array(
-                [self.__get_scores(qm, arg['emb']) for qm in query_matrices]
-            ))
+            print(f'{query_id}) "{self._queries_dict[query_id]}"')
+            for arg in top_query_args:
+                id = arg['arg_id']
+                arg = mongo_db.get_arg_by_id(id)
+                print(f'\t{id}: {arg["premises"][0]["model_text"][:140]}')
 
-        arg_ids = np.array(arg_ids)
+    def _query_topn_args(self, cos_sims, args_topn):
+        topn_ranked_idxs = self._topn_ranked_idxs_by_cos_sim(cos_sims, args_topn)
 
-        top_args = []
-        for query_scores in np.transpose(resulting_scores):
-            top_ids = np.argsort(query_scores)[::-1][:top_n]
-            top_args.append(arg_ids[top_ids])
+        topn_arg_ids = self._get_ranked_arg_ids(topn_ranked_idxs)
+        topn_cos_sims = self._get_ranked_cos_sims(cos_sims, topn_ranked_idxs)
 
-        return top_args
+        return self._args_cos_sims_list(topn_arg_ids, topn_cos_sims)
 
-    def store_query_results(self, coll, queries, args):
-        assert len(queries) == len(args)
+    def _args_cos_sims_list(self, arg_ids, cos_sims):
+        args_cos_sims_list = []
 
-        coll.drop()
-        for q, args in zip(queries, args):
-            coll.insert_one({
-                'query_id': q.id,
-                'query_text': q.text,
-                'args': args.tolist(),
+        for rank, (arg_id, cos_sim) in enumerate(zip(arg_ids, cos_sims)):
+            args_cos_sims_list.append({
+                'arg_id': arg_id,
+                'rank': rank,
+                'cos_sim': cos_sim,
             })
-        print(coll.find_one({}))
 
-    def __get_scores(self, query_matrix, arg_emb):
-        """ Dual Embedding similarity for query and args
+        return args_cos_sims_list
 
+    def _topn_ranked_idxs_by_cos_sim(self, cos_sims, args_topn):
+        return np.argsort(cos_sims)[::-1][:args_topn]
+
+    def _get_ranked_cos_sims(self, cos_sims, ranked_ids):
+        return cos_sims[ranked_ids]
+
+    def _get_ranked_arg_ids(self, ranked_ids):
+        return [self._arg_ids[idx] for idx in ranked_ids]
+
+    def _init(self):
+        self._init_queries()
+        self._init_cos_sim_matrix()
+        self._transpose_cos_sim_matrix()
+
+    def _transpose_cos_sim_matrix(self):
+        self._cos_sim_matrix = np.transpose(self._cos_sim_matrix)
+
+    def _init_queries(self):
+        cbow = CBOW.load()
+        queries = get_queries(cbow)
+
+        self._queries_dict = self._create_queries_dict(queries)
+        self._queries_emb_matrices = self._create_queries_emb_matrices(
+            queries=queries,
+            emb_model=InEmbedding(cbow=cbow),
+        )
+
+    def _create_queries_dict(self, queries):
+        queries_dict = {}
+        for query in queries:
+            queries_dict[query.id] = query.text
+        return queries_dict
+
+    def _create_queries_emb_matrices(self, *, queries, emb_model):
+        queries_emb_matrices = []
+
+        for query in queries:
+            self._query_ids.append(query.id)
+            emb_matrix = emb_model.text_to_emb_matrix(query.text)
+            queries_emb_matrices.append(emb_matrix)
+
+        return queries_emb_matrices
+
+    def _init_cos_sim_matrix(self):
+        cos_sim_matrix = []
+
+        for arg in tqdm(MongoDB().args_coll.find().limit(100)):
+            self._arg_ids.append(arg['id'])
+            cos_sim_matrix.append(self._get_arg_queries_cos_sims(arg))
+
+        self._cos_sim_matrix = cos_sim_matrix
+
+    def _get_arg_queries_cos_sims(self, arg):
+        arg_emb = self._get_arg_emb(arg)
+        arg_queries_cos_sims = [self._arg_query_cos_sim(arg_emb, qem) for qem in self._queries_emb_matrices]
+
+        return np.array(arg_queries_cos_sims)
+
+    def _get_arg_emb(self, arg):
+        return np.array(arg['premises'][0][self.emb_type])
+
+    def _arg_query_cos_sim(self, arg_emb, query_matrix):
+        """
         Args:
-            query_matrix (:obj:`numpy.array`): embedded queries
-            arg_emb (:obj:`numpy.array`): argument embedding
+            query_matrix (:obj:`numpy.array`): embedded query as matrix
+            arg_emb (:obj:`numpy.array`): embedded argument as vector
 
         Returns:
             float: dual embedding similarity
         """
+        cos_sims = 1 - distance.cdist(query_matrix, np.expand_dims(arg_emb, axis=0), 'cosine')
+        cos_sims_sum = sum(cos_sims) / len(cos_sims)
+        result = 0.0 if np.isnan(cos_sims_sum[0]) else cos_sims_sum[0]
 
-        arg_emb = np.array(arg_emb)
-        cos_sims = 1 - distance.cdist(
-            query_matrix,
-            np.expand_dims(arg_emb, axis=0),
-            'cosine'
-        )
-
-        cos_sum = sum(cos_sims) / len(cos_sims)
-        if np.isnan(cos_sum[0]):
-            return 0.0
-        else:
-            return cos_sum[0]
+        return result

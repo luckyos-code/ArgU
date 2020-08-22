@@ -6,7 +6,7 @@ import json
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.preprocessing.tools import machine_model_clean
     from argU.preprocessing.tools import sentiment_clean
 except Exception as e:
@@ -16,8 +16,8 @@ except Exception as e:
 
 
 def collect_scores(query_ids, query_texts, top_args, sentiments):
-    with open(setup.SCORES_PATH, 'w', newline='', encoding='utf-8') as f_out:
-        writer = csv.writer(f_out, **setup.SCORES_CONFIG)
+    with open(settings.SCORES_PATH, 'w', newline='', encoding='utf-8') as f_out:
+        writer = csv.writer(f_out, **settings.SCORES_CONFIG)
         for query_id, query_text, (arg_ids, arg_fs, arg_bs, arg_ds), sents in zip(
             query_ids, query_texts, top_args, sentiments
         ):
@@ -31,8 +31,8 @@ def collect_scores(query_ids, query_texts, top_args, sentiments):
 
 
 def evaluate(threshold=0.009, alpha=None):
-    with open(setup.SCORES_PATH, 'r', newline='', encoding='utf-8') as f_in:
-        reader = csv.reader(f_in, **setup.SCORES_CONFIG)
+    with open(settings.SCORES_PATH, 'r', newline='', encoding='utf-8') as f_in:
+        reader = csv.reader(f_in, **settings.SCORES_CONFIG)
 
         queries_args = []
         for (query_id, query_text, top_args) in reader:

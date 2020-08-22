@@ -5,14 +5,14 @@ from tqdm import tqdm
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.preprocessing.mongodb import load_db
 except Exception as e:
     print(e)
     sys.exit(0)
 
 db = load_db()
-coll_sents_train = db[setup.MONGO_DB_COL_SENTIMENTS_TRAIN]
+coll_sents_train = db[settings.MONGO_DB_COL_SENTIMENTS_TRAIN]
 
 count = 0
 count_all = 0

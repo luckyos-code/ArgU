@@ -1,18 +1,18 @@
-import sys
-import numpy as np
-import os
-import rootpath
-import re
-from tqdm import tqdm
 import math
+import os
+import re
+import sys
+
+import rootpath
+from tqdm import tqdm
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
-    from argU.preprocessing.texts import clean_to_nl
-    from argU.preprocessing.texts import NUM_TOKEN
-    from argU.preprocessing.texts import PERCENT_TOKEN
-    from argU.preprocessing.texts import URL_TOKEN
+    import settings
+    from argU.preprocessing.nlp import clean_to_nl
+    from argU.preprocessing.nlp import NUM_TOKEN
+    from argU.preprocessing.nlp import PERCENT_TOKEN
+    from argU.preprocessing.nlp import URL_TOKEN
     from argU.preprocessing.mongodb import load_db
 except Exception as e:
     print(e)
@@ -133,8 +133,6 @@ def find_tokens(coll):
 
 
 if __name__ == '__main__':
-    import setup
-    from argU.preprocessing import mongodb
 
     ids = [
         'c67482ba-2019-04-18T13:32:05Z-00000-000',
@@ -237,7 +235,7 @@ if __name__ == '__main__':
         except Exception as e:
             pass
 
-        print(f'{i+1}) PREC: {res_PREC}, NDCG: {res_NDCG}')
+        print(f'{i + 1}) PREC: {res_PREC}, NDCG: {res_NDCG}')
     # print()
     # print(np.sum(res_NDCG))
 

@@ -1,68 +1,46 @@
-from pymongo import MongoClient
 import csv
-import json
-import os
-import rootpath
-import sys
+
 from tqdm import tqdm
-
-try:
-    sys.path.append(os.path.join(rootpath.detect()))
-    import setup
-    from argU.preprocessing.texts import clean_to_train
-    from argU.preprocessing.texts import clean_to_nl
-    from argU.preprocessing.texts import clean_to_sentiment
-except Exception as e:
-    print(e)
-    sys.exit(0)
-
-
-def load_db():
-    """Erhalte ein DB Objekt"""
-
-    print('Connect to MongoDB...')
-    client = MongoClient(setup.MONGO_DB_URL)
-    return client[setup.MONGO_DB_NAME]
 
 
 def collection_exists(coll):
     return coll.count_documents({}) > 0
 
 
-def init_db(coll_args, coll_translation, directory):
-    """Initialisiere die Argumente aus der Ursprungsdatei"""
+# def init_db(coll_args, coll_translation, directory):
+#     """Initialisiere die Argumente aus der Ursprungsdatei"""
+#
+#     trans = []
+#     with open(os.path.join(directory, 'args-me.json'), 'r') as f_in:
+#         data = json.load(f_in)
+#         arguments = data['arguments']
+#
+#     for i, arg in tqdm(enumerate(arguments)):
+#         trans.append({
+#             '_id': i,
+#             'arg_id': arguments[i].pop('id')
+#         })
+#         arguments[i]['_id'] = i
+#
+#     print(f'Insert {len(arguments)} arguments into mongo db...')
+#     coll_args.insert_many(arguments)
+#     coll_translation.insert_many(trans)
 
-    trans = []
-    with open(os.path.join(directory, 'args-me.json'), 'r') as f_in:
-        data = json.load(f_in)
-        arguments = data['arguments']
 
-    for i, arg in tqdm(enumerate(arguments)):
-        trans.append({
-            '_id': i,
-            'arg_id': arguments[i].pop('id')
-        })
-        arguments[i]['_id'] = i
-
-    print(f'Insert {len(arguments)} arguments into mongo db...')
-    coll_args.insert_many(arguments)
-    coll_translation.insert_many(trans)
-
-
-def new_id_to_args_id_dict(coll_trans):
-    trans_dict = dict()
-    for arg in tqdm(coll_trans.find()):
-        trans_dict[arg['arg_id']] = arg['_id']
-    return trans_dict
+# def new_id_to_args_id_dict(coll_trans):
+#     trans_dict = dict()
+#     for arg in tqdm(coll_trans.find()):
+#         trans_dict[arg['arg_id']] = arg['_id']
+#     return trans_dict
 
 
 def init_sents(coll_trans, coll_sents):
     trans_dict = new_id_to_args_id_dict(coll_trans)
 
     with open(
-        setup.SENTIMENTS_PATH, 'r', encoding='utf-8', newline=''
+            settings.SENTIMENTS_PATH, 'r', encoding='utf-8', newline=''
     ) as f_in:
-        reader = csv.reader(f_in, **setup.SENTIMENTS_CONFIG)
+        reader = csv.reader(f_in, **settings.SENTIMENTS_CONFIG)
         header = next(reader)
 
         sents_data = []
@@ -111,27 +89,14 @@ def init_sents_train(source_coll, destiny_coll, min_arg_length=25, max_args=-1):
     destiny_coll.insert_many(data)
 
 
-def store(data, coll_name, override=False):
-    db = load_db()
-    coll = db[coll_name]
-
-    if override:
-        coll.delete_many()
-
-    if type(data) is list:
-        coll.insert_many(data)
-    else:
-        coll.insert_one(data)
-
-
 def init_emb_backup(db):
-    coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
-    coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+    coll_emb = db[settings.MONGO_DB_COL_EMBEDDINGS]
+    coll_emb_back = db[settings.MONGO_DB_COL_EMBEDDINGS_BACKUP]
 
     coll_emb_back.drop()
 
     print('Create embedding backup...')
-    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_EMBEDDINGS_BACKUP}]
+    pipeline = [{"$match": {}}, {"$out": settings.MONGO_DB_COL_EMBEDDINGS_BACKUP}]
     coll_emb.aggregate(pipeline)
 
     print(coll_emb.find_one({}))
@@ -139,13 +104,13 @@ def init_emb_backup(db):
 
 
 def init_res_backup(db):
-    coll = db[setup.MONGO_DB_COL_RESULTS]
-    coll_back = db[setup.MONGO_DB_COL_RESULTS_BACKUP]
+    coll = db[settings.MONGO_DB_COL_RESULTS]
+    coll_back = db[settings.MONGO_DB_COL_RESULTS_BACKUP]
 
     coll_back.drop()
 
     print('Create results backup...')
-    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_RESULTS_BACKUP}]
+    pipeline = [{"$match": {}}, {"$out": settings.MONGO_DB_COL_RESULTS_BACKUP}]
     coll.aggregate(pipeline)
 
     print(coll.find_one({}))
@@ -153,13 +118,13 @@ def init_res_backup(db):
 
 
 def load_emb_backup(db):
-    coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
-    coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+    coll_emb = db[settings.MONGO_DB_COL_EMBEDDINGS]
+    coll_emb_back = db[settings.MONGO_DB_COL_EMBEDDINGS_BACKUP]
 
     coll_emb.drop()
 
     print('Load embedding backup...')
-    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_EMBEDDINGS}]
+    pipeline = [{"$match": {}}, {"$out": settings.MONGO_DB_COL_EMBEDDINGS}]
     coll_emb_back.aggregate(pipeline)
 
     print(coll_emb.find_one({}))
@@ -167,13 +132,13 @@ def load_emb_backup(db):
 
 
 def load_res_backup(db):
-    coll = db[setup.MONGO_DB_COL_RESULTS]
-    coll_back = db[setup.MONGO_DB_COL_RESULTS_BACKUP]
+    coll = db[settings.MONGO_DB_COL_RESULTS]
+    coll_back = db[settings.MONGO_DB_COL_RESULTS_BACKUP]
 
     coll.drop()
 
     print('Load results backup...')
-    pipeline = [{"$match": {}}, {"$out": setup.MONGO_DB_COL_RESULTS}]
+    pipeline = [{"$match": {}}, {"$out": settings.MONGO_DB_COL_RESULTS}]
     coll_back.aggregate(pipeline)
 
     print(coll.find_one({}))
@@ -187,17 +152,17 @@ if __name__ == '__main__':
     parser.add_argument(
         '-i', '--input',
         help='Input Args path',
-        default=setup.RESOURCES_PATH,
+        default=settings.RESOURCES_PATH,
     )
     args = parser.parse_args()
 
     db = load_db()
 
-    coll_args = db[setup.MONGO_DB_COL_ARGS]
-    coll_train = db[setup.MONGO_DB_COL_TRAIN]
-    coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
-    coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
-    coll_sents_train = db[setup.MONGO_DB_COL_SENTIMENTS_TRAIN]
+    coll_args = db[settings.MONGO_DB_COL_ARGS]
+    coll_train = db[settings.MONGO_DB_COL_TRAIN]
+    coll_trans = db[settings.MONGO_DB_COL_TRANSLATION]
+    coll_sents = db[settings.MONGO_DB_COL_SENTIMENTS]
+    coll_sents_train = db[settings.MONGO_DB_COL_SENTIMENTS_TRAIN]
 
     # print('Delete Collections...')
     # coll_args.drop()
@@ -205,19 +170,19 @@ if __name__ == '__main__':
     # coll_trans.drop()
     coll_sents.drop()
 
-    if(not collection_exists(coll_args) or not collection_exists(coll_trans)):
+    if (not collection_exists(coll_args) or not collection_exists(coll_trans)):
         print('Init args collection...')
         init_db(coll_args, coll_trans, args.input)
 
-    if(not collection_exists(coll_sents)):
+    if (not collection_exists(coll_sents)):
         print('Init sentiment collection...')
         init_sents(coll_trans, coll_sents)
 
-    if(not collection_exists(coll_train)):
+    if (not collection_exists(coll_train)):
         print('Init train collection...')
         init_train(coll_args, coll_train, max_args=-1)
 
-    if(not collection_exists(coll_sents_train)):
+    if (not collection_exists(coll_sents_train)):
         print('Init sentiments train collection...')
         init_sents_train(coll_args, coll_sents_train, max_args=-1)
 
@@ -235,8 +200,8 @@ if __name__ == '__main__':
     print(coll_sents_train.find_one({}))
     print()
 
-    coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
-    coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+    coll_emb = db[settings.MONGO_DB_COL_EMBEDDINGS]
+    coll_emb_back = db[settings.MONGO_DB_COL_EMBEDDINGS_BACKUP]
 
     # print(coll_emb.find_one({}))
     # print(coll_emb_back.find_one({}))

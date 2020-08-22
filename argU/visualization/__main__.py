@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.indexing.models import CBOW
     from argU.indexing.models import DESM
     from argU.utils.arguments import TrainArgsIterator
@@ -24,8 +24,8 @@ pca = PCA(n_components=2)
 cbow = CBOW.load()
 
 db = load_db()
-coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
-coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
+coll_emb = db[settings.MONGO_DB_COL_EMBEDDINGS]
+coll_emb_back = db[settings.MONGO_DB_COL_EMBEDDINGS_BACKUP]
 
 args_emb = []
 args_emb_back = []

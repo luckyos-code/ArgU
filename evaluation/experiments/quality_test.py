@@ -1,15 +1,13 @@
 # This file's only purpuse is to check if sentiments and quality of args correlate
 
 
-import csv
-import json
 import os
 import sys
 import rootpath
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.preprocessing.mongodb import load_db
     from argU.utils.arguments import find
     from argU.utils.arguments import Argument
@@ -57,9 +55,9 @@ q5 = ("Social Security Privatized", [
 queries = [q1, q4, q5]
 
 db = load_db()
-coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
-coll_args = db[setup.MONGO_DB_COL_ARGS]
-coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
+coll_trans = db[settings.MONGO_DB_COL_TRANSLATION]
+coll_args = db[settings.MONGO_DB_COL_ARGS]
+coll_sents = db[settings.MONGO_DB_COL_SENTIMENTS]
 
 for q in queries:
     print()

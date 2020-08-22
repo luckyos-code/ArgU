@@ -2,7 +2,6 @@
 # Die CSV enthält alle Infos für BM25
 # Und die Vektor-Embeddings aller Argumente
 
-import argparse
 import os
 import rootpath
 import sys
@@ -10,17 +9,15 @@ import json
 import csv
 import warnings
 import traceback
-import math
 import numpy as np
 from tqdm import tqdm
-from sklearn import preprocessing
-from sklearn.preprocessing import MinMaxScaler, normalize
+from sklearn.preprocessing import normalize
 
 warnings.filterwarnings("error")
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
-    import setup
+    import settings
     from argU.indexing.models import DualEmbedding
     from argU.utils.beautiful import print_argument_texts
     from argU.utils.reader import TrainArgsIterator
@@ -45,8 +42,8 @@ def create(cbow_model, bm25_model, max_args=-1):
 
     vector_size = cbow_model.vector_size
 
-    with open(setup.INDEX_PATH, 'w', encoding='utf-8', newline='') as f_out:
-        writer = csv.writer(f_out, **setup.INDEX_CONFIG)
+    with open(settings.INDEX_PATH, 'w', encoding='utf-8', newline='') as f_out:
+        writer = csv.writer(f_out, **settings.INDEX_CONFIG)
 
         for row in tqdm(TrainArgsIterator(max_args=max_args)):
             arg_id, arg_text = row
@@ -90,8 +87,8 @@ def collect_arguments(queries, cbow_model, bm25_model, max_args=-1):
     desim_scores = []
     arg_ids = []
 
-    with open(setup.INDEX_PATH, 'r', encoding='utf-8', newline='') as f_in:
-        reader = csv.reader(f_in, **setup.INDEX_CONFIG)
+    with open(settings.INDEX_PATH, 'r', encoding='utf-8', newline='') as f_in:
+        reader = csv.reader(f_in, **settings.INDEX_CONFIG)
 
         for i, row in tqdm(enumerate(reader)):
             try:
@@ -212,9 +209,9 @@ def get_top_args(arg_ids, bm25_scores, desim_scores, alpha=0.5, top_n=10):
 
 def get_sentiments(top_args):
     with open(
-        setup.SENTIMENTS_PATH, 'r', newline='', encoding='utf-8'
+        settings.SENTIMENTS_PATH, 'r', newline='', encoding='utf-8'
     ) as f_in:
-        reader = csv.reader(f_in, **setup.SENTIMENTS_CONFIG)
+        reader = csv.reader(f_in, **settings.SENTIMENTS_CONFIG)
         header = next(reader)
 
         sentiments = {}
