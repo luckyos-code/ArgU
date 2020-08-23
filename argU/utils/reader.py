@@ -1,3 +1,4 @@
+import json
 import os
 import xml.etree.ElementTree as ET
 from collections import namedtuple
@@ -7,7 +8,7 @@ from argU.preprocessing.nlp import PreprocessorPipeline, QueryPipeline, ModelPos
 
 Query = namedtuple('Query', 'id text')
 
- 
+
 def get_queries(cbow):
     tree = ET.parse(os.path.join(settings.TOPICS_PATH))
     topics = tree.getroot()
@@ -22,7 +23,16 @@ def get_queries(cbow):
 
     return queries
 
-#
+
+def get_mapping_to_arg_id():
+    with open(settings.MAPPING_PATH, 'r') as f_in:
+        return json.load(f_in)
+
+
+def get_arg_id_to_mapping():
+    mapping_to_arg_id = get_mapping_to_arg_id()
+    return {v: k for (k, v) in mapping_to_arg_id.items()}
+
 # try:
 #     sys.path.append(os.path.join(rootpath.detect()))
 #     import settings

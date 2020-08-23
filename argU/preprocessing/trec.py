@@ -3,7 +3,7 @@ from tqdm import tqdm
 from argU import settings
 from argU.database.mongodb import MongoDB
 from argU.indexing.models import CBOW
-from argU.utils.reader import get_queries
+from argU.utils.reader import get_queries, get_arg_id_to_mapping
 
 
 def create_trec_files():
@@ -12,12 +12,12 @@ def create_trec_files():
 
 
 def create_arguments_trec_file():
-    mongo_db = MongoDB()
+    arg_id_to_mapping = get_arg_id_to_mapping()
     with open(settings.TREC_PATH, 'w', encoding='utf8') as f_out:
-        for arg in tqdm(mongo_db.args_coll.find()):
+        for arg in tqdm(MongoDB().args_coll.find()):
             f_out.write(
                 '<DOC>\n'
-                f'<DOCNO>{arg["_id"]}</DOCNO>\n'
+                f'<DOCNO>{arg_id_to_mapping[arg["id"]]}</DOCNO>\n'
                 f'{arg["premises"][0]["model_text"]}\n'
                 '</DOC>\n'
             )
