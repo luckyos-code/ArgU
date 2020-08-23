@@ -1,5 +1,8 @@
+import json
+
 import numpy as np
 
+from argU import settings
 from argU.database.mongodb import MongoDB
 from argU.indexing.models import CBOW, InEmbedding, OutEmbedding, Desm
 from argU.preprocessing.trec import create_trec_files
@@ -135,6 +138,35 @@ class DESMSubparser(Subparser):
     def _run(self, args):
         desm = Desm(emb_type=args.embedding)
         desm.print_examples(queries_num=4, args_topn=5)
+
+
+class MappingSubparser(Subparser):
+    def __init__(self, name):
+        super().__init__(name)
+
+    def init_args(self, subparsers):
+        self.parser = subparsers.add_parser(self.name, help='Generate Mapping for ALL arguments to numbers')
+
+    def _run(self, args):
+        arguments = self._read_args_me()
+        mappings = self._create_mappings(arguments)
+        self._store_mappings(mappings)
+
+    def _read_args_me(self):
+        with open(settings.ARGS_ME_JSON_PATH, 'r', encoding='utf8') as f_in:
+            data = json.load(f_in)
+        return data['arguments']
+
+    def _create_mappings(self, arguments):
+        mappings = {}
+        for i, arg in enumerate(arguments):
+            mappings[i] = arg['id']
+            del arguments[i]
+        return mappings
+
+    def _store_mappings(self, mappings):
+        with open(settings.MAPPING_PATH, 'w') as f_out:
+            json.dump(mappings, f_out, separators=(',', ':'))
 
 
 class TrecSubparser(Subparser):

@@ -7,10 +7,11 @@ OUTPUT_PATH = os.path.join(BASE_DIR)
 RESOURCES_PATH = os.path.join(BASE_DIR, 'resources/')
 
 ARGS_ME_JSON_PATH = os.path.join(RESOURCES_PATH, 'args-me.json')
-STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
-CBOW_PATH = os.path.join(RESOURCES_PATH, 'cbow.model')
 TOPICS_PATH = os.path.join(RESOURCES_PATH, 'topics.xml')
+STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
 
+MAPPING_PATH = os.path.join(RESOURCES_PATH, 'mapping.json')
+CBOW_PATH = os.path.join(RESOURCES_PATH, 'cbow.model')
 TREC_PATH = os.path.join(RESOURCES_PATH, 'args-me.trec')
 TREC_PATH_TOPICS = os.path.join(RESOURCES_PATH, 'topics.trec')
 
