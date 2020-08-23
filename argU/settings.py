@@ -18,6 +18,7 @@ TREC_PATH = os.path.join(RESOURCES_PATH, 'args-me.trec')
 TREC_PATH_TOPICS = os.path.join(RESOURCES_PATH, 'topics.trec')
 
 TERRIER_RESULTS_PATH = os.path.join(RESOURCES_PATH, 'terrier.res')
+OUR_RESULTS_PATH = os.path.join(RESOURCES_PATH, 'run.txt')
 
 SENTIMENTS_PATH = os.path.join(BASE_DIR, 'argU', 'sentiment', 'results', 'argument_sentiments.csv')
 SENTIMENTS_CONFIG = {
@@ -33,3 +34,9 @@ MONGO_DB_COL_ARGS = 'args'
 METHOD_NO = 'ulT1DetroitnitzCbowDPHSentNo'
 METHOD_EMOTIONAL = 'ulT1DetroitnitzCbowDPHSentEmotional'
 METHOD_NEUTRAL = 'ulT1DetroitnitzCbowDPHSentNeutral'
+
+
+def get_desm_results_path(emb_type):
+    if emb_type == 'in_emb':
+        return DESM_RESULTS_IN_PATH
+    return DESM_RESULTS_OUT_PATH

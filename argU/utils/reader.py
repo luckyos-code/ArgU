@@ -27,7 +27,8 @@ def get_queries(cbow):
 
 def get_mapping_to_arg_id():
     with open(settings.MAPPING_PATH, 'r') as f_in:
-        return json.load(f_in)
+        data = json.load(f_in)
+    return {int(k): v for (k, v) in data.items()}
 
 
 def get_arg_id_to_mapping():

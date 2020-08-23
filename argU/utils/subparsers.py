@@ -6,7 +6,8 @@ from argU import settings
 from argU.database.mongodb import MongoDB
 from argU.indexing.models import CBOW, InEmbedding, OutEmbedding, Desm
 from argU.preprocessing.trec import create_trec_files
-from argU.utils.reader import get_queries, get_arg_id_to_mapping, get_mapped_ids_to_sentiments
+from argU.results.results import ResultManager
+from argU.utils.reader import get_queries, get_arg_id_to_mapping
 
 
 class Subparser:
@@ -178,14 +179,9 @@ class DESMSubparser(Subparser):
         }
 
     def _dump_data(self, data):
-        path = self._get_path()
+        path = settings.get_desm_results_path(self.emb_type)
         with open(path, 'w') as f_out:
             json.dump(data, f_out, separators=(',', ':'))
-
-    def _get_path(self):
-        if self.emb_type == 'in_emb':
-            return settings.DESM_RESULTS_IN_PATH
-        return settings.DESM_RESULTS_OUT_PATH
 
 
 class MappingSubparser(Subparser):
@@ -232,8 +228,11 @@ class EvalSubparser(Subparser):
 
     def init_args(self, subparsers):
         self.parser = subparsers.add_parser(self.name, help='Evaluate Terrier and DESM results')
+        self.parser.add_argument('--emb', choices=['in_emb', 'out_emb'], default='in_emb',
+                                 help='Choose the embedding type')
+        self.parser.add_argument('--sent', choices=['none', 'emotional', 'neutral'], default='none',
+                                 help='Choose Method for argument after-ranking')
 
     def _run(self, args):
-        sentiment_mapping = get_mapped_ids_to_sentiments()
-        terrier_results = None
-        desm_results = None
+        result_manager = ResultManager(emb_type=args.emb, sent_type=args.sent, args_topn=1000)
+        result = result_manager.get_results()

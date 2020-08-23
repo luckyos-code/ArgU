@@ -184,6 +184,3 @@ class MongoDB:
         """
 
         return len(arg['premises'][0]['api_text'].split()) >= length
-
-    def _must_overwrite(self):
-        return self.overwrite or self.args_coll.count() == 0
