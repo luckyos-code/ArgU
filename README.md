@@ -2,9 +2,9 @@
 
 **Argument retrieval model for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
-* [Touché notebook](reports/touche_report.pdf) (English, short paper)
+* [Touché notebook](reports/staudte_lange_sentarg.pdf) (English, short paper)
 
-* [Tira](evaluation/tira_evaluation.md) - Tira evaluation results (on original dataset)
+* [Qrel evaluation](evaluation/qrel_evaluation.md) - Qrel evaluation results (on original dataset)
 * [Experiments](evaluation/experiments/) - Conducted experiments for evaluation
 * [Old lab report](reports/lab_report.pdf) (German)
 

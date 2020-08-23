@@ -12,7 +12,7 @@
 * ` nDCG@10": "0.105" `
 * ` QrelCoverage@10": "0.46" `
 
-### R3: Neutral is better)
+### R3: Neutral is better
 ---
 * ` nDCG: "0.223" `
 * ` nDCG@5: "0.022" `
