@@ -148,8 +148,7 @@ class MappingSubparser(Subparser):
         self.parser = subparsers.add_parser(self.name, help='Generate Mapping for ALL arguments to numbers')
 
     def _run(self, args):
-        arguments = self._read_args_me()
-        mappings = self._create_mappings(arguments)
+        mappings = self._create_mappings(self._read_args_me())
         self._store_mappings(mappings)
 
     def _read_args_me(self):
@@ -161,7 +160,6 @@ class MappingSubparser(Subparser):
         mappings = {}
         for i, arg in enumerate(arguments):
             mappings[i] = arg['id']
-            del arguments[i]
         return mappings
 
     def _store_mappings(self, mappings):
