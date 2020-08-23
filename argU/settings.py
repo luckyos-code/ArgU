@@ -12,6 +12,8 @@ STOPWORDS_PATH = os.path.join(RESOURCES_PATH, 'stopwords_eng.txt')
 
 MAPPING_PATH = os.path.join(RESOURCES_PATH, 'mapping.json')
 CBOW_PATH = os.path.join(RESOURCES_PATH, 'cbow.model')
+DESM_RESULTS_IN_PATH = os.path.join(RESOURCES_PATH, 'desm_results_in.json')
+DESM_RESULTS_OUT_PATH = os.path.join(RESOURCES_PATH, 'desm_results_out.json')
 TREC_PATH = os.path.join(RESOURCES_PATH, 'args-me.trec')
 TREC_PATH_TOPICS = os.path.join(RESOURCES_PATH, 'topics.trec')
 

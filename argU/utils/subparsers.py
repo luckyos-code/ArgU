@@ -6,7 +6,7 @@ from argU import settings
 from argU.database.mongodb import MongoDB
 from argU.indexing.models import CBOW, InEmbedding, OutEmbedding, Desm
 from argU.preprocessing.trec import create_trec_files
-from argU.utils.reader import get_queries
+from argU.utils.reader import get_queries, get_arg_id_to_mapping, get_mapped_ids_to_sentiments
 
 
 class Subparser:
@@ -35,28 +35,24 @@ class MongoDBSubparser(Subparser):
         self.parser = subparsers.add_parser(self.name, help='MongoDB options')
         self.parser.add_argument('-i', '--init', action='store_true',
                                  help='Reinitialize MongoDB with preprocessed arguments')
-        self.parser.add_argument('-n', '--number', type=int, default=-1,
+        self.parser.add_argument('--num', type=int, default=-1,
                                  help='Number of arguments to read into MongoDB')
         self.parser.add_argument('-e', '--embeddings', action='store_true',
                                  help='Add IN and OUT embeddings to all arguments')
-        self.parser.add_argument('-s', '--sentiments', action='store_true',
-                                 help='Add sentiment values to all arguments')
         self.parser.add_argument('-d', '--desm', action='store_true',
-                                 help='Create DESM collections')
+                                 help='Create DESM collections. But Embeddings must be initialized beforehand!')
         self.parser.add_argument('--arg_emb', choices=['in_emb', 'out_emb'], default='in_emb',
-                                 help='Choose the arguments embedding type for DESM')
+                                 help='Choose the arguments embedding type for `-d`')
 
     def _run(self, args):
         if args.init:
-            MongoDB(overwrite=True, max_args=args.number)
+            MongoDB().reinitialize(max_args=args.num)
         elif args.embeddings:
             cbow = CBOW.load()
             MongoDB().add_args_embeddings(
                 in_emb_model=InEmbedding(cbow=cbow),
                 out_emb_model=OutEmbedding(cbow=cbow),
             )
-        elif args.sentiments:
-            MongoDB().add_args_sentiments()
         elif args.desm:
             desm = Desm(emb_type=args.arg_emb)
             MongoDB().create_desm_collection(desm=desm)
@@ -114,7 +110,7 @@ class EmbeddingSubparser(Subparser):
             self._print_argument(arg, most_sim)
 
     def _print_argument(self, arg, most_sim):
-        print(f'"{arg["context"]["discussionTitle"]}" -> {most_sim}')
+        print(f'"{arg["conclusion"]}" -> {most_sim}')
 
     def _print_queries(self, *, queries, word_model, query_emb_model):
         for query in queries[:10]:
@@ -129,15 +125,67 @@ class EmbeddingSubparser(Subparser):
 class DESMSubparser(Subparser):
     def __init__(self, name):
         super().__init__(name)
+        self.emb_type = None
+        self.args_topn = None
+        self.desm = None
 
     def init_args(self, subparsers):
         self.parser = subparsers.add_parser(self.name, help='Run the DESM model and generate scores')
-        self.parser.add_argument('-e', '--embedding', choices=['in_emb', 'out_emb'], default='in_emb',
+        self.parser.add_argument('-s', '--store', action='store_true',
+                                 help='Store results in a matching file')
+        self.parser.add_argument('--emb', choices=['in_emb', 'out_emb'], default='in_emb',
                                  help='Choose the embedding type')
+        self.parser.add_argument('--topn', type=int, default=100,
+                                 help='How many Arguments per Query should be stored?')
 
     def _run(self, args):
-        desm = Desm(emb_type=args.embedding)
-        desm.print_examples(queries_num=4, args_topn=5)
+        self._init_attributes(args)
+
+        if args.store:
+            self._store_in_file()
+        else:
+            self.desm.print_examples(queries_num=4, args_topn=5)
+
+    def _init_attributes(self, args):
+        self.emb_type = args.emb
+        self.args_topn = args.topn
+        self.desm = Desm(emb_type=self.emb_type)
+
+    def _store_in_file(self):
+        json_data = self._create_data()
+        self._dump_data(json_data)
+
+    def _create_data(self):
+        data = []
+        mapping = get_arg_id_to_mapping()
+
+        for query_id, top_args in self.desm.query_results_iterator(args_topn=self.args_topn):
+            arg_list = self._create_arg_list(top_args, mapping)
+            data.append({query_id: arg_list})
+
+        return data
+
+    def _create_arg_list(self, args, mapping):
+        arg_list = []
+        for arg in args:
+            arg_list.append(self._create_arg(arg, mapping))
+        return arg_list
+
+    def _create_arg(self, arg, mapping):
+        return {
+            'id': mapping[arg['id']],
+            'cos': round(arg['cos_sim'], 6)
+        }
+
+    def _dump_data(self, data):
+        path = self._get_path()
+        with open(path, 'w') as f_out:
+            json.dump(data, f_out, separators=(',', ':'))
+
+    def _get_path(self):
+        if self.emb_type == 'in_emb':
+            return settings.DESM_RESULTS_IN_PATH
+        return settings.DESM_RESULTS_OUT_PATH
 
 
 class MappingSubparser(Subparser):
@@ -176,3 +224,16 @@ class TrecSubparser(Subparser):
 
     def _run(self, args):
         create_trec_files()
+
+
+class EvalSubparser(Subparser):
+    def __init__(self, name):
+        super().__init__(name)
+
+    def init_args(self, subparsers):
+        self.parser = subparsers.add_parser(self.name, help='Evaluate Terrier and DESM results')
+
+    def _run(self, args):
+        sentiment_mapping = get_mapped_ids_to_sentiments()
+        terrier_results = None
+        desm_results = None

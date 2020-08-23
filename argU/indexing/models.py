@@ -221,10 +221,9 @@ class Desm:
     def _args_cos_sims_list(self, arg_ids, cos_sims):
         args_cos_sims_list = []
 
-        for rank, (arg_id, cos_sim) in enumerate(zip(arg_ids, cos_sims)):
+        for arg_id, cos_sim in zip(arg_ids, cos_sims):
             args_cos_sims_list.append({
-                'arg_id': arg_id,
-                'rank': rank,
+                'id': arg_id,
                 'cos_sim': cos_sim,
             })
 
@@ -276,7 +275,7 @@ class Desm:
     def _init_cos_sim_matrix(self):
         cos_sim_matrix = []
 
-        for arg in tqdm(MongoDB().args_coll.find().limit(100)):
+        for arg in tqdm(MongoDB().args_coll.find().limit(2000)):
             self._arg_ids.append(arg['id'])
             cos_sim_matrix.append(self._get_arg_queries_cos_sims(arg))
 

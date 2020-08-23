@@ -5,7 +5,7 @@ import pymongo
 from tqdm import tqdm
 
 from argU import settings
-from argU.preprocessing.nlp import api_nlp_pipeline, model_nlp_pipeline
+from argU.preprocessing.nlp import model_nlp_pipeline, api_nlp_pipeline
 
 
 class MongoDB:
@@ -13,12 +13,9 @@ class MongoDB:
     DESM_IN_COLL = 'desm_in_in'
     DESM_OUT_COLL = 'desm_in_out'
 
-    def __init__(self, *, overwrite=False, max_args=-1):
+    def __init__(self):
         self.client = pymongo.MongoClient(settings.MONGO_DB_URL)
         self.db = self.client[settings.MONGO_DB_NAME]
-        self.overwrite = overwrite
-        self.max_args = max_args
-        self._init()
 
     def __str__(self):
         first_argument = self.args_coll.find().next()
@@ -29,7 +26,6 @@ class MongoDB:
 
             First Argument (ID: {first_argument['_id']})
             ---------------------------------------------
-            Text >> "{first_argument['premises'][0]['text'][:130]} ..."
             Model text >> "{first_argument['premises'][0]['model_text'][:130]} ..."
             API Text >> "{first_argument['premises'][0]['api_text'][:130]} ..."
             In emb >> {first_argument['premises'][0].get('in_emb', [])[:5]} ...
@@ -66,6 +62,10 @@ class MongoDB:
             ]
         }
 
+    def reinitialize(self, *, max_args=-1):
+        self._store_args(max_args)
+        self._optimize_args()
+
     def model_texts_iterator(self):
         return self._TextsIterator(args_coll=self.args_coll, key='model_text')
 
@@ -76,11 +76,6 @@ class MongoDB:
         for arg in tqdm(self.args_coll.find(self._where_embeddings_not_exist), total=self.args_coll.count()):
             arg = self._add_arg_embeddings(arg, in_emb_model=in_emb_model, out_emb_model=out_emb_model)
             self._store_arg(arg, ignore_len_check=True)
-
-    def add_args_sentiments(self):
-        sentiments_dict = self._read_sentiments()
-        for arg in tqdm(self.args_coll.find()):
-            self._add_arg_sentiment(arg, sentiments_dict)
 
     def get_arg_by_id(self, id):
         return self.args_coll.find_one({'id': id})
@@ -113,13 +108,6 @@ class MongoDB:
             for arg in self.args_coll.find():
                 yield arg['premises'][0][self.key].split()
 
-    def _add_arg_sentiment(self, arg, sentiments):
-        if arg['id'] in sentiments:
-            self.args_coll.update_one(
-                {'_id': arg['_id']},
-                {"$set": {"sentiment": sentiments[arg['id']]}},
-            )
-
     def _read_sentiments(self):
         sentiments = {}
         with open(settings.SENTIMENTS_PATH, 'r', encoding='utf-8') as f_in:
@@ -135,37 +123,45 @@ class MongoDB:
         next(reader)
         return reader
 
-    def _init(self):
-        if self._must_overwrite():
-            self._insert_args()
-            self._add_args_texts()
-            self._remove_irrelevant_args()
-
-    def _remove_irrelevant_args(self):
-        self.args_coll.remove(self._where_new_texts_not_exist)
-
-    def _insert_args(self):
-        with open(settings.ARGS_ME_JSON_PATH, 'r', encoding='utf8') as f_in:
-            data = json.load(f_in)
-        data = self._get_args_list(data)
+    def _store_args(self, max_args=-1, data=None):
+        if data is None:
+            with open(settings.ARGS_ME_JSON_PATH, 'r', encoding='utf8') as f_in:
+                data = json.load(f_in)
+            data = self._get_args_list(data, max_args)
 
         self.args_coll.drop()
         self.args_coll.insert_many(data)
 
-    def _get_args_list(self, data):
-        if self.max_args != -1:
-            return data['arguments'][:self.max_args]
+    def _get_args_list(self, data, max_args):
+        if max_args != -1:
+            return data['arguments'][:max_args]
         return data['arguments']
 
-    def _add_args_texts(self):
-        for arg in tqdm(self.args_coll.find(), total=self.args_coll.count()):
-            arg = self._add_arg_texts(arg)
-            self._store_arg(arg)
+    def _optimize_args(self):
+        new_args = self._get_optimized_args()
+        self._store_args(data=new_args)
 
-    def _add_arg_texts(self, arg):
-        arg['premises'][0]['model_text'] = model_nlp_pipeline(arg['premises'][0]['text'])
-        arg['premises'][0]['api_text'] = api_nlp_pipeline(arg['premises'][0]['text'])
-        return arg
+    def _get_optimized_args(self):
+        new_args = []
+        for arg in tqdm(self.args_coll.find(), total=self.args_coll.count()):
+            new_arg = self._create_opt_arg(arg)
+            self._append_arg(new_arg, new_args)
+        return new_args
+
+    def _append_arg(self, arg, arg_list):
+        if self._has_min_length(arg, 25):
+            arg_list.append(arg)
+
+    def _create_opt_arg(self, arg):
+        return {
+            'id': arg['id'],
+            'premises': [{
+                'model_text': model_nlp_pipeline(arg['premises'][0]['text']),
+                'api_text': api_nlp_pipeline(arg['premises'][0]['text']),
+                'stance': arg['premises'][0]['stance']
+            }],
+            'conclusion': arg['conclusion']
+        }
 
     def _add_arg_embeddings(self, arg, *, in_emb_model, out_emb_model):
         arg['premises'][0]['in_emb'] = in_emb_model.text_to_emb(arg['premises'][0]['model_text']).tolist()
