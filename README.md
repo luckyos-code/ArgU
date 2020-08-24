@@ -3,85 +3,26 @@
 **Argument retrieval model for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
 * [Touché notebook](reports/staudte_lange_sentarg.pdf) (English, short paper)
-
-
 * [Qrel evaluation](evaluation/qrel_evaluation.md) - Evaluation results for official qrels (on original dataset)
 * [Leaderboard results](evaluation/leaderboard_results.md) - Official results as team 'Oscar François de Jarjayes' in [leader board](https://events.webis.de/touche-20/shared-task-1.html#results)
-* [Experiments](evaluation/experiments/) - Conducted experiments for evaluation
-* [Old lab report](reports/lab_report.pdf) (German)
 
-## Prerequisites
-
-1. Download and extract the [Args.me Corpus](https://zenodo.org/record/3274636/files/argsme.zip)
-2. Put args-me.json and the topic.xml in your input directory
-
-## Tira Runs
-1. ` $ docker pull mongo `
-2. ` $ docker build -t argu . `
-3. ` $ chmod +x ./tira_run.sh `
-4. ` $ ./tira_run.sh -s <run-type> -i $inputDataset -o $outputDir `
-	- Run Types
-		- ` no `: No sentiments
-		- ` emotional `: Emotional is better
-		- ` neutral `: Neutral is better
-
-## Docker
+## Run
 
 1. ` $ docker build -t argu . `
 	- Build the image
-2. ` $ docker run --name argu-mongo -p 27017:27017 -d --rm mongo `
-	- Starts a MonoDB container
-3. ` $ docker run -e RUN_TYPE=<run-type> -v <input-dir-path>:/input -v <output-dir-path>:/output --name argu --rm -it --network="host" argu `
+2. ` $ docker run -e EMBEDDING=<embedding> -e RUN_TYPE=<run-type> -v <output-dir-path>:/output --name argu --rm -it `
 	- Runs the ArgU container
+	- Embeddings
+		- ` in_emb `: In-In (best)
+		- ` out_emb `: In-Out
 	- Run Types
-		- ` no `: No sentiments
-		- ` emotional `: Emotional is better
+		- ` none `: No sentiments
+		- ` emotional `: Emotional is better (best)
 		- ` neutral `: Neutral is better
 	- Input directory with args-me.json and topics.xml
 	- Output directory will get the results as run.txt
-4. ` $ docker stop argu-mongo `
-	- Remove MongoDB container
-
-## Command Line
-
-0. ` $ pip install -r requirements.txt `
-
-1. ` $ python argU/preprocessing/mongodb.py -i <input-dir-path> `
-	- Create mapping (mongoDB ID <--> argument.id); store into MongoDB
-	- Store arguments with the new ID into MongoDB
-	- Clean arguments and store as train-arguments into MongoDB
-	- Read Sentiments and store into MongoDB
-2. ` $ python argU/preprocessing/trec.py -i <input-dir-path> `
-	- Create a .trec-file for Terrier (train and queries)
-3. ` $ python argU/indexing/a2v.py -f `
-	- Generate CBOW
-	- Generate argument embeddings and store them into MongoDB
-4. Install and run Terrier (see [Dockerfile](Dockerfile))
-	- Calculate DPH for queries
-	- copy result file in [resources](resources/)
-5. ` $ python -m argU -d `
-	- Compare given queries with argument embeddings; store Top-N DESM scores into MongoDB
-6. Merge DESM, Terrier and Sentiments to create final scores
-	1. ` $ python -m argU -m -s no -o <output-dir-path> `
-		* R1: No sentiments
-	2. ` $ python -m argU -m -s emotional -o <output-dir-path> `
-		* R2: Emotional is better
-	3. ` $ python -m argU -m -s neutral -o <output-dir-path> `
-		* R3: Neutral is better
-  
-### Submodul Excecution
-
-* For individual moduls, cd into directory and run ` $ python -m [modulname] `
 
 ## Documentation
-
-### Modules
-
-* [indexing](argU/indexing/) - Index for DESM scores
-* [preprocessing](argU/preprocessing/) - Prework and cleaning of input data
-* [sentiment](argU/sentiment/) - Sentiment analysis
-* [utils](argU/utils/) - Helper functionalities
-* [visualization](argU/visualization/) - Visualization of scores
 
 ### Built With
 
@@ -152,4 +93,4 @@ An example run for task 1 is:
 ### Material
 * Literature: [Ajjour et al. 2019](https://webis.de/downloads/publications/papers/stein_2019o.pdf), [Wachsmuth et al. 2017](https://webis.de/downloads/publications/papers/stein_2017r.pdf), [Potthast et al. 2019](https://webis.de/downloads/publications/papers/stein_2019j.pdf)
 * Dataset: [Args.me Corpus](https://zenodo.org/record/3274636#.XeAyUi03v4a)
-* Evaluation: [Topics Queries XML](/topics.xml)
+* Topics: [Topics Queries XML](/topics.xml)
