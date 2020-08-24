@@ -1,4 +1,5 @@
 import json
+import os
 
 import numpy as np
 
@@ -271,10 +272,14 @@ class EvalSubparser(Subparser):
                                  help='Hoy many arguments from Terrier and DESM respectively should be used?')
         self.parser.add_argument('--sent', choices=['none', 'emotional', 'neutral'], default='none',
                                  help='Choose Method for argument after-ranking')
-        self.parser.add_argument('--out', default=settings.OUR_RESULTS_PATH,
+        self.parser.add_argument('--out', default=settings.RESOURCES_PATH,
                                  help='Path for the result')
 
     def _run(self, args):
-        result_manager = ResultManager(emb_type=args.emb, sent_type=args.sent, store_path=args.out,
+        store_path = self._get_store_path(args.out)
+        result_manager = ResultManager(emb_type=args.emb, sent_type=args.sent, store_path=store_path,
                                        args_topn=args.args_topn)
         result_manager.generate_results()
+
+    def _get_store_path(self, dir):
+        return os.path.join(dir, 'run.txt')

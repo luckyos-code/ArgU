@@ -15,7 +15,6 @@ TREC_PATH = os.path.join(RESOURCES_PATH, 'args-me.trec')
 TREC_PATH_TOPICS = os.path.join(RESOURCES_PATH, 'topics.trec')
 
 TERRIER_RESULTS_PATH = os.path.join(RESOURCES_PATH, 'terrier.res')
-OUR_RESULTS_PATH = os.path.join(RESOURCES_PATH, 'run.txt')
 
 SENTIMENTS_PATH = os.path.join(BASE_DIR, 'argU', 'sentiment', 'results', 'argument_sentiments.csv')
 
