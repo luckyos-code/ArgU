@@ -1,7 +1,7 @@
 import argparse
 
 from argU.utils.subparsers import MongoDBSubparser, EmbeddingSubparser, Subparser, DESMSubparser, TrecSubparser, \
-    MappingSubparser, EvalSubparser
+    MappingSubparser, EvalSubparser, DefaultSubparser
 
 mongodb_subparser = MongoDBSubparser(name='mongodb')
 embedding_subparser = EmbeddingSubparser(name='embedding')
@@ -27,5 +27,5 @@ def read_command_line():
 
 def run_commands(args):
     subparser_name = vars(args)['subparser']
-    subparser = Subparser.manager.get(subparser_name, None)
+    subparser = Subparser.manager.get(subparser_name, DefaultSubparser())
     subparser(args)

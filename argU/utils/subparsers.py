@@ -28,6 +28,44 @@ class Subparser:
         raise NotImplemented
 
 
+class DefaultSubparser(Subparser):
+
+    def __init__(self, name='default'):
+        super().__init__(name)
+
+    def _run(self, args):
+        print(f"""
+                                                     _    _ 
+                                     /\             | |  | |
+                                    /  \   _ __ __ _| |  | |
+                                   / /\ \ | '__/ _` | |  | |
+                                  / ____ \| | | (_| | |__| |
+                                 /_/    \_\_|  \__, |\____/
+                                                __/ |
+                                               |___/
+        =================================================================================
+        
+        | Paper: "SentArg: A Hybrid Doc2Vec/DPH Model with Sentiment Analysis Refinement"
+        | Authors: Christian Staudte & Lucas Lange
+        
+        | Abstract: "In this work we explore the yet untested inclusion of sentiment 
+        |               analysis  in  the  argument  ranking  process.  By comparing 
+        |               approaches,  we  show  that favoring stronger sentiments can 
+        |               improve retrieval quality.
+
+        | How to Use?
+        | (1) Read the README.md file
+        | (2) Run <main.py -h> to get information how all submodules work
+        
+        | Testing stuff?
+        | To test Word- and Text-Embeddings, you can use the following arguments:
+        | * <main.py embedding -q>
+        | * <main.py embedding -q -o>
+        | * <main.py embedding -a>
+        | * <main.py desm --emb=... --topn=...>
+        """)
+
+
 class MongoDBSubparser(Subparser):
     def __init__(self, name):
         super().__init__(name)
