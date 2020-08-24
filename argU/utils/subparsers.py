@@ -229,11 +229,14 @@ class EvalSubparser(Subparser):
         self.parser = subparsers.add_parser(self.name, help='Evaluate Terrier and DESM results')
         self.parser.add_argument('--emb', choices=['in_emb', 'out_emb'], default='in_emb',
                                  help='Choose the embedding type')
+        self.parser.add_argument('--args_topn', type=int, default=1000,
+                                 help='Hoy many arguments from Terrier and DESM respectively should be used?')
         self.parser.add_argument('--sent', choices=['none', 'emotional', 'neutral'], default='none',
                                  help='Choose Method for argument after-ranking')
         self.parser.add_argument('--out', default=settings.OUR_RESULTS_PATH,
                                  help='Path for the result')
 
     def _run(self, args):
-        result_manager = ResultManager(emb_type=args.emb, sent_type=args.sent, store_path=args.out, args_topn=1000)
-        result = result_manager.get_results()
+        result_manager = ResultManager(emb_type=args.emb, sent_type=args.sent, store_path=args.out,
+                                       args_topn=args.args_topn)
+        result_manager.generate_results()

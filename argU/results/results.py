@@ -43,7 +43,7 @@ class ResultManager:
         self.desm_result = DesmResultManager(emb_type=self.emb_type, args_topn=args_topn)
         self.scoring_functions = self._init_scoring_functions()
 
-    def get_results(self):
+    def generate_results(self):
         merged_result = self._merge()
         self._add_sentiments(merged_result)
         self._add_final_scores(merged_result)
