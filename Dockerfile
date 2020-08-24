@@ -22,4 +22,4 @@ RUN unzip resources/mapping.zip -d resources \
 	&& unzip resources/desm.zip -d resources
 
 # Run the app
-CMD python main.py eval --emb=$EMBEDDING --sent=$RUN_TYPE --out=/output
+CMD python main.py eval --args_topn=$TOP_N --emb=$EMBEDDING --sent=$RUN_TYPE --out=/output
