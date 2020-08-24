@@ -44,11 +44,11 @@ class ResultManager:
         self.scoring_functions = self._init_scoring_functions()
 
     def generate_results(self):
-        merged_result = self._merge()
-        self._add_sentiments(merged_result)
-        self._add_final_scores(merged_result)
-        self._sort_results(merged_result)
-        self._generate_file(merged_result)
+        result = self._merge()
+        result = self._add_sentiments(result)
+        self._add_final_scores(result)
+        self._sort_results(result)
+        self._generate_file(result)
 
     def _init_scoring_functions(self):
         return {
@@ -63,10 +63,22 @@ class ResultManager:
 
     def _add_sentiments(self, result):
         sentiment_mapping = get_mapped_ids_to_sentiments()
+        new_result = {}
 
         for query_id, args in result.items():
-            for arg in args:
-                arg.sent = sentiment_mapping[arg.id]
+            new_result[query_id] = self._args_with_sentiments(args, sentiment_mapping)
+
+        return new_result
+
+    def _args_with_sentiments(self, args, mapping):
+        new_args = []
+
+        for arg in args:
+            if arg.id in mapping:
+                arg.sent = mapping[arg.id]
+                new_args.append(arg)
+
+        return new_args
 
     def _add_final_scores(self, result):
         for query_id, args in result.items():
