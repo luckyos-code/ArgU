@@ -281,5 +281,5 @@ class EvalSubparser(Subparser):
                                        args_topn=args.args_topn)
         result_manager.generate_results()
 
-    def _get_store_path(self, dir):
-        return os.path.join(dir, 'run.txt')
+    def _get_store_path(self, dir_name):
+        return os.path.join(dir_name, 'run.txt')
