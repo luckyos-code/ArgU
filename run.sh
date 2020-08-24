@@ -10,4 +10,4 @@ o) outputDir=${OPTARG};;
 esac
 done
 
-docker run -e EMBEDDING=embedding -e RUN_TYPE=$runType -v $outputDir:/output --name argu --rm -it
+docker run -e EMBEDDING=$embedding -e RUN_TYPE=$runType -v $outputDir:/output --name argu --rm -it argu
