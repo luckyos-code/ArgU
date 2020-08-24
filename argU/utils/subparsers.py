@@ -35,7 +35,7 @@ class DefaultSubparser(Subparser):
         super().__init__(name)
 
     def _run(self, args):
-        print(f"""
+        print("""
                                                      _    _ 
                                      /\             | |  | |
                                     /  \   _ __ __ _| |  | |
@@ -52,11 +52,11 @@ class DefaultSubparser(Subparser):
         | Abstract: "In this work we explore the yet untested inclusion of sentiment 
         |               analysis  in  the  argument  ranking  process.  By comparing 
         |               approaches,  we  show  that favoring stronger sentiments can 
-        |               improve retrieval quality.
+        |               improve retrieval quality."
 
         | How to Use?
         | (1) Read the README.md file
-        | (2) Run <main.py -h> to get information how all submodules work
+        | (2) Run <main.py -h> to get information on how all submodules work
         
         | Testing stuff?
         | To test Word- and Text-Embeddings, you can use the following arguments:
