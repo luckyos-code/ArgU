@@ -14,8 +14,9 @@ from argU.utils.reader import get_queries, get_arg_id_to_mapping
 class Subparser:
     manager = {}
 
-    def __init__(self, name):
+    def __init__(self, name, help):
         self.name = name
+        self.help = help
         self.parser = None
         self.manager[self.name] = self
 
@@ -23,6 +24,10 @@ class Subparser:
         self._run(args)
 
     def init_args(self, subparsers):
+        self.parser = subparsers.add_parser(name=self.name, help=self.help)
+        self._init_args()
+
+    def _init_args(self):
         raise NotImplemented
 
     def _run(self, args):
@@ -31,8 +36,8 @@ class Subparser:
 
 class DefaultSubparser(Subparser):
 
-    def __init__(self, name='default'):
-        super().__init__(name)
+    def __init__(self, name='default', help=''):
+        super().__init__(name, help)
 
     def _run(self, args):
         print("""
@@ -68,11 +73,10 @@ class DefaultSubparser(Subparser):
 
 
 class MongoDBSubparser(Subparser):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, help):
+        super().__init__(name, help)
 
-    def init_args(self, subparsers):
-        self.parser = subparsers.add_parser(self.name, help='MongoDB options')
+    def _init_args(self):
         self.parser.add_argument('--find', default=None, help='Find Argument by ID')
         self.parser.add_argument('-i', '--init', action='store_true',
                                  help='Reinitialize MongoDB with preprocessed arguments')
@@ -100,11 +104,10 @@ class MongoDBSubparser(Subparser):
 
 
 class EmbeddingSubparser(Subparser):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, help):
+        super().__init__(name, help)
 
-    def init_args(self, subparsers):
-        self.parser = subparsers.add_parser(self.name, help='CBOW model options')
+    def _init_args(self):
         self.parser.add_argument('-t', '--train', action='store_true',
                                  help='Train a new continuous bag of words model')
         self.parser.add_argument('-q', '--queries', action='store_true',
@@ -162,14 +165,13 @@ class EmbeddingSubparser(Subparser):
 
 
 class DESMSubparser(Subparser):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, help):
+        super().__init__(name, help)
         self.emb_type = None
         self.args_topn = None
         self.desm = None
 
-    def init_args(self, subparsers):
-        self.parser = subparsers.add_parser(self.name, help='Run the DESM model and generate scores')
+    def _init_args(self):
         self.parser.add_argument('-s', '--store', action='store_true',
                                  help='Store results in a matching file')
         self.parser.add_argument('--emb', choices=['in_emb', 'out_emb'], default='in_emb',
@@ -223,11 +225,11 @@ class DESMSubparser(Subparser):
 
 
 class MappingSubparser(Subparser):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, help):
+        super().__init__(name, help)
 
-    def init_args(self, subparsers):
-        self.parser = subparsers.add_parser(self.name, help='Generate Mapping for ALL arguments to numbers')
+    def _init_args(self):
+        pass
 
     def _run(self, args):
         mappings = self._create_mappings(self._read_args_me())
@@ -250,22 +252,21 @@ class MappingSubparser(Subparser):
 
 
 class TrecSubparser(Subparser):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, help):
+        super().__init__(name, help)
 
-    def init_args(self, subparsers):
-        self.parser = subparsers.add_parser(self.name, help='Generate Trec files for Terrier')
+    def _init_args(self):
+        pass
 
     def _run(self, args):
         create_trec_files()
 
 
 class EvalSubparser(Subparser):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, help):
+        super().__init__(name, help)
 
-    def init_args(self, subparsers):
-        self.parser = subparsers.add_parser(self.name, help='Evaluate Terrier and DESM results')
+    def _init_args(self):
         self.parser.add_argument('--emb', choices=['in_emb', 'out_emb'], default='in_emb',
                                  help='Choose the embedding type')
         self.parser.add_argument('--args_topn', type=int, default=1000,
