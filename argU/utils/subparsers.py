@@ -34,6 +34,7 @@ class MongoDBSubparser(Subparser):
 
     def init_args(self, subparsers):
         self.parser = subparsers.add_parser(self.name, help='MongoDB options')
+        self.parser.add_argument('--find', default=None, help='Find Argument by ID')
         self.parser.add_argument('-i', '--init', action='store_true',
                                  help='Reinitialize MongoDB with preprocessed arguments')
         self.parser.add_argument('--num', type=int, default=-1,
@@ -52,6 +53,9 @@ class MongoDBSubparser(Subparser):
                 in_emb_model=InEmbedding(cbow=cbow),
                 out_emb_model=OutEmbedding(cbow=cbow),
             )
+        elif args.find is not None:
+            arg = MongoDB().args_coll.find_one({'id': args.find})
+            print(arg)
         else:
             print(MongoDB())
 
@@ -227,7 +231,9 @@ class EvalSubparser(Subparser):
                                  help='Choose the embedding type')
         self.parser.add_argument('--sent', choices=['none', 'emotional', 'neutral'], default='none',
                                  help='Choose Method for argument after-ranking')
+        self.parser.add_argument('--out', default=settings.OUR_RESULTS_PATH,
+                                 help='Path for the result')
 
     def _run(self, args):
-        result_manager = ResultManager(emb_type=args.emb, sent_type=args.sent, args_topn=1000)
+        result_manager = ResultManager(emb_type=args.emb, sent_type=args.sent, store_path=args.out, args_topn=1000)
         result = result_manager.get_results()

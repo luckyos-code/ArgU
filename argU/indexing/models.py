@@ -275,7 +275,7 @@ class Desm:
     def _init_cos_sim_matrix(self):
         cos_sim_matrix = []
 
-        for arg in tqdm(MongoDB().args_coll.find().limit(2000)):
+        for arg in tqdm(MongoDB().args_coll.find()):
             self._arg_ids.append(arg['id'])
             cos_sim_matrix.append(self._get_arg_queries_cos_sims(arg))
 

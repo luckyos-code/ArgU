@@ -33,10 +33,11 @@ class ResultManager:
 
     mapping = get_mapping_to_arg_id()
 
-    def __init__(self, *, sent_type, emb_type, args_topn):
+    def __init__(self, *, sent_type, emb_type, args_topn, store_path):
         self.emb_type = emb_type
         self.args_topn = args_topn
         self.sent_type = sent_type
+        self.store_path = store_path
         self.method = self.methods[sent_type]
         self.terrier_result = TerrierResultManager(args_topn=args_topn)
         self.desm_result = DesmResultManager(emb_type=self.emb_type, args_topn=args_topn)
@@ -98,7 +99,7 @@ class ResultManager:
         return self.scoring_functions[self.sent_type](arg.dph, arg.sent)
 
     def _generate_file(self, result):
-        with open(settings.OUR_RESULTS_PATH, 'w') as f_out:
+        with open(self.store_path, 'w') as f_out:
             for query_id, args in result.items():
                 self._write_args_to_file(query_id, args, f_out)
 
