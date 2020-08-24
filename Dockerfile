@@ -15,7 +15,7 @@ COPY ./ ./
 RUN unzip resources/mapping.zip \
 	&& unzip resources/terrier.zip \
 	&& unzip resources/desm_results_in.zip \
-	&& unzip resources/desm_results_out.zip \
+	&& unzip resources/desm_results_out.zip
 
 # Run the app
 CMD python main.py eval --emb=$EMBEDDING --sent=$RUN_TYPE --out=/output
