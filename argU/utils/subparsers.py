@@ -55,7 +55,7 @@ class MongoDBSubparser(Subparser):
             )
         elif args.find is not None:
             arg = MongoDB().args_coll.find_one({'id': args.find})
-            print(arg)
+            print(arg['premises'][0]['model_text'])
         else:
             print(MongoDB())
 
