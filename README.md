@@ -10,7 +10,8 @@
 
 1. ` $ docker build -t argu . `
 	- Build the image
-2. ` $ docker run -e EMBEDDING=<embedding> -e RUN_TYPE=<run-type> -v <output-dir-path>:/output --name argu --rm -it `
+2. ` $ chmod +x ./run.sh `
+3. ` $ ./run.sh -e <embedding> -s <run-type> -o $outputDir `
 	- Runs the ArgU container
 	- Embeddings
 		- ` in_emb `: In-In (best)
