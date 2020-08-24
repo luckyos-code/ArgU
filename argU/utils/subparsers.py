@@ -55,9 +55,16 @@ class DefaultSubparser(Subparser):
         | Authors: Christian Staudte & Lucas Lange
         
         | Abstract: "In this work we explore the yet untested inclusion of sentiment 
-        |               analysis  in  the  argument  ranking  process.  By comparing 
-        |               approaches,  we  show  that favoring stronger sentiments can 
-        |               improve retrieval quality."
+        |       analysis  in  the  argument  ranking  process.  By  utilizing a word 
+        |       embedding  model  we  create document embeddings for all queries and 
+        |       arguments.  These  are  compared  with each other to calculate top-N 
+        |       argument  context scores for each query. We also calculate top-N DPH 
+        |       scores with the Terrier Framework. This way, each query receives two
+        |       lists of top-N arguments. Afterwards we form an intersection of both
+        |       argument  lists,  sorted  by the DPH scores. To further increase the 
+        |       ranking  quality,  we  sort the arguments of each query by sentiment 
+        |       values. Our findings ultimately imply that emotional sentiments help
+        |       to improve the quality of the retrieval outcome.
 
         | How to Use?
         | (1) Read the README.md file
@@ -119,9 +126,8 @@ class EmbeddingSubparser(Subparser):
 
     def _run(self, args):
         if args.train:
-            mongo_db = MongoDB()
             cbow = CBOW()
-            cbow.train(mongo_db.model_texts_iterator(), min_count=3, size=300, window=6)
+            cbow.train(MongoDB().model_texts_iterator(), min_count=5, size=100, window=7)
 
         elif args.out and not (args.queries or args.arguments):
             cbow = CBOW.load()
@@ -270,7 +276,7 @@ class EvalSubparser(Subparser):
         self.parser.add_argument('--emb', choices=['in_emb', 'out_emb'], default='in_emb',
                                  help='Choose the embedding type')
         self.parser.add_argument('--args_topn', type=int, default=1000,
-                                 help='Hoy many arguments from Terrier and DESM respectively should be used?')
+                                 help='How many arguments from Terrier and DESM respectively should be used?')
         self.parser.add_argument('--sent', choices=['none', 'emotional', 'neutral'], default='none',
                                  help='Choose Method for argument after-ranking')
         self.parser.add_argument('--out', default=settings.RESOURCES_PATH,

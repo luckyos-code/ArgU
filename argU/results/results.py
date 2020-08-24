@@ -23,6 +23,9 @@ class Argument:
     def __lt__(self, other):
         return self.final_score < other.final_score
 
+    def __hash__(self):
+        return self.id
+
 
 class ResultManager:
     methods = {

@@ -63,7 +63,7 @@ class MongoDB:
         return self._TextsIterator(args_coll=self.args_coll, key='api_text')
 
     def add_args_embeddings(self, *, in_emb_model, out_emb_model):
-        for arg in tqdm(self.args_coll.find(self._where_embeddings_not_exist), total=self.args_coll.count()):
+        for arg in tqdm(self.args_coll.find(), total=self.args_coll.count()):
             arg = self._add_arg_embeddings(arg, in_emb_model=in_emb_model, out_emb_model=out_emb_model)
             self._store_arg(arg, ignore_len_check=True)
 
