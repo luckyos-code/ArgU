@@ -3,12 +3,12 @@ import argparse
 from argU.utils.subparsers import MongoDBSubparser, EmbeddingSubparser, Subparser, DESMSubparser, TrecSubparser, \
     MappingSubparser, EvalSubparser
 
-mongodb_subparser = MongoDBSubparser('mongodb')
-embedding_subparser = EmbeddingSubparser('embedding')
-desm_subparser = DESMSubparser('desm')
-trec_subparser = TrecSubparser('trec')
-mapping_subparser = MappingSubparser('mapping')
-evaluation_subparser = EvalSubparser('eval')
+mongodb_subparser = MongoDBSubparser(name='mongodb')
+embedding_subparser = EmbeddingSubparser(name='embedding')
+desm_subparser = DESMSubparser(name='desm')
+trec_subparser = TrecSubparser(name='trec')
+mapping_subparser = MappingSubparser(name='mapping')
+evaluation_subparser = EvalSubparser(name='eval')
 
 
 def read_command_line():

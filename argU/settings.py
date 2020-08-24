@@ -2,8 +2,6 @@ import csv
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_PATH = os.path.join(BASE_DIR)
-
 RESOURCES_PATH = os.path.join(BASE_DIR, 'resources/')
 
 ARGS_ME_JSON_PATH = os.path.join(RESOURCES_PATH, 'args-me.json')

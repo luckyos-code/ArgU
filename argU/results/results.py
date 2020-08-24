@@ -31,6 +31,8 @@ class ResultManager:
         'none': settings.METHOD_NO,
     }
 
+    mapping = get_mapping_to_arg_id()
+
     def __init__(self, *, sent_type, emb_type, args_topn):
         self.emb_type = emb_type
         self.args_topn = args_topn
@@ -96,20 +98,28 @@ class ResultManager:
         return self.scoring_functions[self.sent_type](arg.dph, arg.sent)
 
     def _generate_file(self, result):
-        mapping = get_mapping_to_arg_id()
         with open(settings.OUR_RESULTS_PATH, 'w') as f_out:
             for query_id, args in result.items():
-                for i, arg in enumerate(args):
-                    original_arg_id = mapping[arg.id]
-                    f_out.write(' '.join([
-                        str(query_id),
-                        'Q0',
-                        original_arg_id,
-                        str(i + 1),
-                        str(arg.final_score),
-                        self.method,
-                        '\n'
-                    ]))
+                self._write_args_to_file(query_id, args, f_out)
+
+    def _write_args_to_file(self, query_id, args, file):
+        if len(args) == 0:
+            self._write(query_id, '10113b57-2019-04-18T17:05:08Z-00001-000', 0, 0.0, file)
+        else:
+            for i, arg in enumerate(args):
+                original_arg_id = self.mapping[arg.id]
+                self._write(query_id, original_arg_id, i, arg.final_score, file)
+
+    def _write(self, query_id, arg_id, pos, score, file):
+        file.write(' '.join([
+            str(query_id),
+            'Q0',
+            arg_id,
+            str(pos + 1),
+            str(score),
+            self.method,
+            '\n'
+        ]))
 
     @staticmethod
     def _final_score_sentiments_no(dph, sent):

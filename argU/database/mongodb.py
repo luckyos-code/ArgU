@@ -10,8 +10,6 @@ from argU.preprocessing.nlp import model_nlp_pipeline, api_nlp_pipeline
 
 class MongoDB:
     ARGS_COLL = 'args'
-    DESM_IN_COLL = 'desm_in_in'
-    DESM_OUT_COLL = 'desm_in_out'
 
     def __init__(self):
         self.client = pymongo.MongoClient(settings.MONGO_DB_URL)
@@ -35,14 +33,6 @@ class MongoDB:
     @property
     def args_coll(self):
         return self.db[MongoDB.ARGS_COLL]
-
-    @property
-    def desm_in_coll(self):
-        return self.db[MongoDB.DESM_IN_COLL]
-
-    @property
-    def desm_out_coll(self):
-        return self.db[MongoDB.DESM_OUT_COLL]
 
     @property
     def _where_embeddings_not_exist(self):
@@ -79,25 +69,6 @@ class MongoDB:
 
     def get_arg_by_id(self, id):
         return self.args_coll.find_one({'id': id})
-
-    def create_desm_collection(self, *, desm, args_topn=100):
-        coll = self._init_desm_collection(desm)
-
-        json_data = []
-        for i, (query_id, top_args) in enumerate(desm.query_results_iterator(args_topn=args_topn)):
-            query_data = []
-            for arg in top_args:
-                query_data.append(arg)
-            json_data.append({
-                query_id: query_data
-            })
-
-        coll.insert_many(json_data)
-
-    def _init_desm_collection(self, desm):
-        coll = self.desm_in_coll if desm.emb_type == 'in_emb' else self.desm_out_coll
-        coll.drop()
-        return coll
 
     class _TextsIterator:
         def __init__(self, *, args_coll, key):

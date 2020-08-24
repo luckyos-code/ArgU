@@ -40,8 +40,6 @@ class MongoDBSubparser(Subparser):
                                  help='Number of arguments to read into MongoDB')
         self.parser.add_argument('-e', '--embeddings', action='store_true',
                                  help='Add IN and OUT embeddings to all arguments')
-        self.parser.add_argument('-d', '--desm', action='store_true',
-                                 help='Create DESM collections. But Embeddings must be initialized beforehand!')
         self.parser.add_argument('--arg_emb', choices=['in_emb', 'out_emb'], default='in_emb',
                                  help='Choose the arguments embedding type for `-d`')
 
@@ -54,9 +52,6 @@ class MongoDBSubparser(Subparser):
                 in_emb_model=InEmbedding(cbow=cbow),
                 out_emb_model=OutEmbedding(cbow=cbow),
             )
-        elif args.desm:
-            desm = Desm(emb_type=args.arg_emb)
-            MongoDB().create_desm_collection(desm=desm)
         else:
             print(MongoDB())
 
