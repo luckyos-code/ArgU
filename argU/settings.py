@@ -1,4 +1,3 @@
-import csv
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,11 +18,6 @@ TERRIER_RESULTS_PATH = os.path.join(RESOURCES_PATH, 'terrier.res')
 OUR_RESULTS_PATH = os.path.join(RESOURCES_PATH, 'run.txt')
 
 SENTIMENTS_PATH = os.path.join(BASE_DIR, 'argU', 'sentiment', 'results', 'argument_sentiments.csv')
-SENTIMENTS_CONFIG = {
-    'delimiter': ',',
-    'quotechar': '"',
-    'quoting': csv.QUOTE_MINIMAL,
-}
 
 MONGO_DB_NAME = 'ArgU'
 MONGO_DB_URL = 'mongodb://localhost:27017/'
