@@ -109,8 +109,7 @@ resources/*
 !resources/stopwords_eng.txt
 !resources/mapping.zip
 !resources/terrier.zip
-!resources/desm_results_in.json
-!resources/desm_results_out.json
+!resources/desm.zip
 
 run.txt
 
