@@ -5,21 +5,27 @@ import xml.etree.ElementTree as ET
 from collections import namedtuple
 
 from argU import settings
-from argU.preprocessing.nlp import PreprocessorPipeline, QueryPipeline, ModelPostPipeline
+from argU.preprocessing.old_nlp import clean_to_nl, clean_to_train, clean_pos_tags
 
 Query = namedtuple('Query', 'id text')
 
 
 def get_queries(cbow):
+    def old_clean(q_text):
+        q_text = q_text.replace('?', '')
+        q_text = clean_to_nl(q_text)
+        q_text = clean_to_train(q_text)
+        q_text = clean_pos_tags(q_text)
+
+        return q_text
+
     tree = ET.parse(os.path.join(settings.TOPICS_PATH))
     topics = tree.getroot()
-
-    query_nlp_pipeline = PreprocessorPipeline(ModelPostPipeline(QueryPipeline(cbow)))
 
     queries = []
     for topic in topics:
         queries.append(
-            Query(topic[0].text, query_nlp_pipeline(topic[1].text))
+            Query(topic[0].text, old_clean(topic[1].text))
         )
 
     return queries
