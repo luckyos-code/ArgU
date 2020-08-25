@@ -88,13 +88,13 @@ class CBOW:
     def _init_default_emb(self):
         assert self.model is not None, 'Model has not been initialized yet!'
 
-        emb = np.zeros((self.model.vector_size,))
-        top_n = 100
-
-        for token in self.model.wv.index2entity[:top_n]:
-            emb += self.model.wv[token]
-
-        self.default_emb = emb / top_n
+        self.default_emb = np.zeros((self.model.vector_size,))
+        # top_n = 100
+        #
+        # for token in self.model.wv.index2entity[:top_n]:
+        #     emb += self.model.wv[token]
+        #
+        # self.default_emb = emb / top_n
 
     @staticmethod
     def load():
@@ -120,7 +120,6 @@ class InEmbedding:
     def text_to_emb(self, text):
         emb_matrix = self.text_to_emb_matrix(text)
         vec = self._emb_matrix_to_vec(emb_matrix)
-
         return vec
 
     def text_to_emb_matrix(self, text):
@@ -142,12 +141,13 @@ class InEmbedding:
         for tv in token_variants(token):
             if self._emb_exists(tv):
                 return self._create_emb(self.model.wv.word_vec(tv))
-        return self._create_emb(self.default_emb)
+        return self.default_emb
 
     def _emb_exists(self, token):
         return token in self.model.wv.vocab
 
     def _create_emb(self, emb):
+
         if self.normalize:
             return emb / np.linalg.norm(emb)
         return emb
