@@ -141,7 +141,7 @@ class InEmbedding:
     def _token_to_emb(self, token):
         for tv in token_variants(token):
             if self._emb_exists(tv):
-                return self._create_emb(self.model.wv[tv])
+                return self._create_emb(self.model.wv.word_vec(tv))
         return self._create_emb(self.default_emb)
 
     def _emb_exists(self, token):
