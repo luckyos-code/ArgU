@@ -109,7 +109,8 @@ class CBOW:
 
 
 class InEmbedding:
-    def __init__(self, *, cbow):
+    def __init__(self, *, cbow, normalize=True):
+        self.normalize = normalize
         self.model = self._init_model(cbow)
         self.default_emb = cbow.default_emb
 
@@ -140,14 +141,16 @@ class InEmbedding:
     def _token_to_emb(self, token):
         for tv in token_variants(token):
             if self._emb_exists(tv):
-                return self._create_norm_emb(self.model.wv[tv])
-        return self._create_norm_emb(self.default_emb)
+                return self._create_emb(self.model.wv[tv])
+        return self._create_emb(self.default_emb)
 
     def _emb_exists(self, token):
         return token in self.model.wv.vocab
 
-    def _create_norm_emb(self, emb):
-        return emb / np.linalg.norm(emb)
+    def _create_emb(self, emb):
+        if self.normalize:
+            return emb / np.linalg.norm(emb)
+        return emb
 
 
 class OutEmbedding(InEmbedding):
@@ -253,7 +256,7 @@ class Desm:
         self._queries_dict = self._create_queries_dict(queries)
         self._queries_emb_matrices = self._create_queries_emb_matrices(
             queries=queries,
-            emb_model=InEmbedding(cbow=cbow),
+            emb_model=InEmbedding(cbow=cbow, normalize=False),
         )
 
     def _create_queries_dict(self, queries):

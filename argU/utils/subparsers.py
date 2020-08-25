@@ -182,7 +182,7 @@ class DESMSubparser(Subparser):
                                  help='Store results in a matching file')
         self.parser.add_argument('--emb', choices=['in_emb', 'out_emb'], default='in_emb',
                                  help='Choose the embedding type')
-        self.parser.add_argument('--topn', type=int, default=100,
+        self.parser.add_argument('--topn', type=int, default=1000,
                                  help='How many Arguments per Query should be stored?')
 
     def _run(self, args):
