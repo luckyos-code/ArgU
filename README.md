@@ -11,7 +11,7 @@
 1. ` $ docker build -t argu . `
 	- Build the image
 2. ` $ chmod +x ./run.sh `
-3. ` $ ./run.sh -e <embedding> -s <run-type> -o $outputDir `
+3. ` $ ./run.sh -n 2000 -e <embedding> -s <run-type> -o <output-dir> `
 	- Runs the ArgU container
 	- Embeddings
 		- ` in_emb `: In-In (best)
@@ -20,7 +20,6 @@
 		- ` none `: No sentiments
 		- ` emotional `: Emotional is better (best)
 		- ` neutral `: Neutral is better
-	- Input directory with args-me.json and topics.xml
 	- Output directory will get the results as run.txt
 
 ## Documentation
