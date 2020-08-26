@@ -15,7 +15,7 @@
 2. Put args-me.json and the topic.xml in your input directory
 
 ## Tira Runs
-1. ` $ docker pull mongo `
+1. ` $ docker pull mongo:4.4 `
 2. ` $ docker build -t argu . `
 3. ` $ chmod +x ./tira_run.sh `
 4. ` $ ./tira_run.sh -s <run-type> -i $inputDataset -o $outputDir `
