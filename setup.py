@@ -1,5 +1,6 @@
 import csv
 import os
+
 import rootpath
 
 ROOT_PATH = rootpath.detect()
@@ -14,7 +15,7 @@ if not os.path.isdir(RESOURCES_PATH):
 IMAGES_PATH = os.path.join(RESOURCES_PATH, 'images/')
 STOPWORDS_PATH = os.path.join(ROOT_PATH, 'stopwords_eng.txt')
 
-MONGO_DB_NAME = 'argU'
+MONGO_DB_NAME = 'argU2'
 MONGO_DB_URL = 'mongodb://localhost:27017/'
 MONGO_DB_COL_ARGS = 'args'
 MONGO_DB_COL_TRAIN = 'train'
