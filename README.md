@@ -3,11 +3,8 @@
 **Argument retrieval model for [Touché @ CLEF 2020](https://touche.webis.de/) - 1st Shared Task on Argument Retrieval.**
 
 * [Touché notebook](reports/staudte_lange_sentarg.pdf) (English, short paper)
-
-* [Evaluation results](evaluation/evaluation_results.md) - Official results as team 'Oscar François de Jarjayes' in [leader board](https://events.webis.de/touche-20/shared-task-1.html#results)
-* [Tira](evaluation/tira_evaluation.md) - Tira evaluation results (on original dataset)
-* [Experiments](evaluation/experiments/) - Conducted experiments for evaluation
-* [Old lab report](reports/lab_report.pdf) (German)
+* [Qrel evaluation](evaluation/qrel_evaluation.md) - Evaluation results for official qrels (on original dataset)
+* [Leaderboard results](evaluation/leaderboard_results.md) - Official results as team 'Oscar François de Jarjayes' in [leader board](https://events.webis.de/touche-20/shared-task-1.html#results)
 
 ## Prerequisites
 
