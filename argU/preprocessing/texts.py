@@ -1,8 +1,9 @@
-import re
 import os
-import rootpath
+import re
 import sys
+
 import nltk
+import rootpath
 from nltk.corpus import wordnet
 
 try:
@@ -245,7 +246,6 @@ def tokenize_query(query):
 
             tokens = dict()
             synonyms = []
-            antonyms = []
             try:
                 for syn in wordnet.synsets(i):
                     for l in syn.lemmas():
@@ -265,8 +265,6 @@ def tokenize_query(query):
             tokens['token'] = i
             tokens['pos_tag'] = pos_list[0][1]
             tokens['synonyms'] = synonyms
-            # if l.antonyms():
-            # tokens['anton'] = antonyms
             yield tokens
 
 

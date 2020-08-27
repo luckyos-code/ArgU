@@ -1,10 +1,10 @@
 import csv
 import os
 import sys
+
 import numpy as np
-from numpy import linalg as LA
-from sklearn.preprocessing import normalize
 import rootpath
+from numpy import linalg as LA
 from tqdm import tqdm
 
 try:
@@ -63,8 +63,6 @@ class Argument:
         self.text_raw = row[0]
         self.stance = row[1]
         self.text_nl = tools.natural_language_clean(self.text_raw)
-        # self.previous_argument = row[3]
-        # self.next_argument = row[8]
 
     @property
     def text_machine(self):
@@ -152,7 +150,7 @@ class TrainArgsIterator:
 
     def __iter__(self):
         with open(
-            setup.TRAIN_ARGS_PATH, 'r', newline='', encoding='utf-8'
+                setup.TRAIN_ARGS_PATH, 'r', newline='', encoding='utf-8'
         ) as f_in:
             reader = csv.reader(f_in, **setup.TRAIN_ARGS_CONFIG)
 

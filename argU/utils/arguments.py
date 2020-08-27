@@ -1,10 +1,10 @@
-import sys
-import numpy as np
-import os
-import rootpath
-import re
-from tqdm import tqdm
 import math
+import os
+import re
+import sys
+
+import rootpath
+from tqdm import tqdm
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
@@ -56,8 +56,6 @@ def get_NDCG(scores):
     res_opt = []
 
     scores_opt = sorted(scores, reverse=True)
-    # print(scores)
-    # print(scores_opt)
 
     v = 0
     v_opt = 0
@@ -133,48 +131,11 @@ def find_tokens(coll):
 
 
 if __name__ == '__main__':
-    import setup
-    from argU.preprocessing import mongodb
 
     ids = [
         'c67482ba-2019-04-18T13:32:05Z-00000-000',
         '446913e7-2019-04-18T15:54:16Z-00002-000',
     ]
-
-    # db = mongodb.load_db()
-    # coll = db[setup.MONGO_DB_COL_ARGS]
-    # coll_trans = db[setup.MONGO_DB_COL_TRANSLATION]
-    # trans = dict()
-    # for t in tqdm(coll_trans.find()):
-    #     trans[t['arg_id']] = t['_id']
-
-    # =======================================
-    # Arguments by ids
-    # fancy_print(coll, [4688, 4690, 235, 13584, 13582, 24230, 11422])
-
-    # a = coll.find_one(
-    #     {'_id': trans['e7b98175-2019-04-18T14:36:18Z-00002-000']}
-    # )
-    # print(a)
-
-    # =======================================
-    # Short arguments
-
-    # args = find_short(coll, threshold=25, max_amount=200)
-    # for arg in args:
-    #     print(f"* {arg['id']}: {arg['premises'][0]['text']}")
-
-    # =======================================
-    # Numbers and URLs
-
-    # args = find_tokens(coll)
-
-    # train_args_iter = TrainArgsIterator(max_args=10)
-    # for a in train_args_iter:
-    #     print(a)
-
-    # =======================================
-    # NDCG Test
 
     n_100_q1_gains = [3, 3, 1, 1, 0, 2, 0, 2,
                       3, 3, 0, 0, 3, 3, 1, 0, 3, 2, 3, 2]
@@ -237,11 +198,4 @@ if __name__ == '__main__':
         except Exception as e:
             pass
 
-        print(f'{i+1}) PREC: {res_PREC}, NDCG: {res_NDCG}')
-    # print()
-    # print(np.sum(res_NDCG))
-
-    # fancy_NDCG = ' & '.join([
-    # str(round(n, 2)).replace('.', ',') for n in res_NDCG
-    # ])
-    # print(fancy_NDCG)
+        print(f'{i + 1}) PREC: {res_PREC}, NDCG: {res_NDCG}')
