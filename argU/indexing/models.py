@@ -1,17 +1,14 @@
-
-import csv
-import json
 import os
 import sys
-import rootpath
 import time
-from tqdm import tqdm
 
 import numpy as np
+import rootpath
+from gensim.models import KeyedVectors
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
-from gensim.models import KeyedVectors
 from scipy.spatial import distance
+from tqdm import tqdm
 
 try:
     sys.path.append(os.path.join(rootpath.detect()))
@@ -75,7 +72,6 @@ class CBOW:
 
     @staticmethod
     def load():
-
         print("Load CBOW...")
         tick = time.time()
         cbow = CBOW()
@@ -136,14 +132,6 @@ class DESM:
                     unk += 1
 
         vec = np.sum(emb_matrix, axis=0) / (emb_matrix.shape[0])
-
-        # print(wv.most_similar(positive=[vec], topn=10))
-        # print(f'Unk. count: {unk}')
-
-        # for (w, s) in wv.most_similar(positive=[vec], topn=10):
-        # diff_words.add(w)
-        # print(diff_words)
-        # print(len(diff_words))
         return vec
 
     def queries_to_emb(self, queries, model_type='in'):
@@ -174,9 +162,6 @@ class DESM:
                 f'[{query.id}] {query.text}  {emb_matrix.shape} -> '
                 f'{unk} von {len(query.text.split())} Wörtern unbekannt'
             ))
-            # for i, emb in enumerate(emb_matrix):
-            # most_sim = model.wv.most_similar(positive=[emb], topn=4)
-            # print(f'\t{terms[i]} -> {most_sim}')
             print()
             unk_all += unk
             query_embs.append(emb_matrix)

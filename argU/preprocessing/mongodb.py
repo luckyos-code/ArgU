@@ -1,9 +1,10 @@
-from pymongo import MongoClient
 import csv
 import json
 import os
-import rootpath
 import sys
+
+import rootpath
+from pymongo import MongoClient
 from tqdm import tqdm
 
 try:
@@ -60,7 +61,7 @@ def init_sents(coll_trans, coll_sents):
     trans_dict = new_id_to_args_id_dict(coll_trans)
 
     with open(
-        setup.SENTIMENTS_PATH, 'r', encoding='utf-8', newline=''
+            setup.SENTIMENTS_PATH, 'r', encoding='utf-8', newline=''
     ) as f_in:
         reader = csv.reader(f_in, **setup.SENTIMENTS_CONFIG)
         header = next(reader)
@@ -199,25 +200,21 @@ if __name__ == '__main__':
     coll_sents = db[setup.MONGO_DB_COL_SENTIMENTS]
     coll_sents_train = db[setup.MONGO_DB_COL_SENTIMENTS_TRAIN]
 
-    # print('Delete Collections...')
-    # coll_args.drop()
-    # coll_train.drop()
-    # coll_trans.drop()
     coll_sents.drop()
 
-    if(not collection_exists(coll_args) or not collection_exists(coll_trans)):
+    if (not collection_exists(coll_args) or not collection_exists(coll_trans)):
         print('Init args collection...')
         init_db(coll_args, coll_trans, args.input)
 
-    if(not collection_exists(coll_sents)):
+    if (not collection_exists(coll_sents)):
         print('Init sentiment collection...')
         init_sents(coll_trans, coll_sents)
 
-    if(not collection_exists(coll_train)):
+    if (not collection_exists(coll_train)):
         print('Init train collection...')
         init_train(coll_args, coll_train, max_args=-1)
 
-    if(not collection_exists(coll_sents_train)):
+    if (not collection_exists(coll_sents_train)):
         print('Init sentiments train collection...')
         init_sents_train(coll_args, coll_sents_train, max_args=-1)
 
@@ -237,6 +234,3 @@ if __name__ == '__main__':
 
     coll_emb = db[setup.MONGO_DB_COL_EMBEDDINGS]
     coll_emb_back = db[setup.MONGO_DB_COL_EMBEDDINGS_BACKUP]
-
-    # print(coll_emb.find_one({}))
-    # print(coll_emb_back.find_one({}))
