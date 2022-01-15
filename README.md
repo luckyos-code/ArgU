@@ -6,6 +6,9 @@
 * [Qrel evaluation](evaluation/qrel_evaluation.md) - Evaluation results for official qrels (on original dataset)
 * [Leaderboard results](evaluation/leaderboard_results.md) - Official results as team 'Oscar François de Jarjayes' in [leader board](https://events.webis.de/touche-20/shared-task-1.html#results)
 
+## Abstract
+In this work we explore the yet untested inclusion of sentiment analysis in the argument ranking process. By utilizing a word embedding model we create document embeddings for all queries and arguments. These are compared with each other to calculate top-N argument context scores for each query. We also calculate top-N DPH scores with the Terrier Framework. This way, each query receives two lists of top-N arguments. Afterwards we form an intersection of both argument lists and sort the result by the DPH scores. To further increase the ranking quality, we sort the final arguments of each query by sentiment values. Our findings ultimately imply that rewarding neutral sentiments can decrease the quality of the retrieval outcome.
+
 ## Prerequisites
 
 1. Download and extract the [Args.me Corpus](https://zenodo.org/record/3274636/files/argsme.zip)
