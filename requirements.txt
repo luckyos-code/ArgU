@@ -33,7 +33,7 @@ humanfriendly==4.18
 idna==2.8
 importlib-metadata==0.23
 jmespath==0.9.4
-joblib==0.14.1
+joblib==1.2.0
 jsonpickle==1.2
 keras-applications==1.0.8
 keras-preprocessing==1.1.0
