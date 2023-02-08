@@ -14,7 +14,7 @@ colorama==0.4.1
 coloredlogs==10.0
 colour-runner==0.1.1
 coverage==4.5.4
-cryptography==3.3.2
+cryptography==39.0.1
 cycler==0.10.0
 deepdiff==4.0.9
 docutils==0.15.2
